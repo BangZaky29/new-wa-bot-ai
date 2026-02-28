@@ -31,7 +31,6 @@ export default function App() {
     globalStats,
     initializing,
     fetchStatus,
-    fetchStats,
     handleInit,
     handleLogout
   } = useWhatsApp();
