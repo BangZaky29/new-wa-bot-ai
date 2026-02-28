@@ -21,6 +21,7 @@ import { LogMonitor } from './components/LogMonitor';
 import { Dashboard } from './components/Dashboard';
 import { PromptEditor } from './components/PromptEditor';
 import { ContactManager } from './components/ContactManager';
+import { ApiKeyManager } from './components/ApiKeyManager';
 
 const SESSION_ID = import.meta.env.VITE_WA_SESSION_ID || 'wa-bot-ai';
 
@@ -175,6 +176,8 @@ export default function App() {
                   exit={{ opacity: 0, y: -10 }}
                   className="space-y-8"
                 >
+                  <ApiKeyManager />
+                  <div className="h-px bg-slate-800/50 w-full" />
                   <PromptEditor />
                   <div className="h-px bg-slate-800/50 w-full" />
                   <ContactManager />

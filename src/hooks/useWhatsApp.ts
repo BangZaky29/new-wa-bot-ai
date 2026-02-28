@@ -18,6 +18,14 @@ export interface ContactItem {
     is_allowed: boolean;
 }
 
+export interface ApiKeyItem {
+    id: string;
+    name: string;
+    key_value: string;
+    is_active: boolean;
+    created_at: string;
+}
+
 export function useWhatsApp() {
     const [status, setStatus] = useState<ConnectionStatus>({
         success: false,
@@ -236,6 +244,57 @@ export function useWhatsApp() {
         }
     };
 
+    // API KEYS
+    const getKeys = async () => {
+        try {
+            const response = await axios.get(`${WA_API_BASE}/api/whatsapp/config/keys`);
+            return response.data.keys as ApiKeyItem[];
+        } catch (error) {
+            console.error('Failed to fetch API keys:', error);
+            return [];
+        }
+    };
+
+    const addKey = async (name: string, key: string) => {
+        try {
+            await axios.post(`${WA_API_BASE}/api/whatsapp/config/keys`, { name, key });
+            return true;
+        } catch (error) {
+            console.error('Failed to add API key:', error);
+            return false;
+        }
+    };
+
+    const updateKey = async (id: string, name: string, key?: string) => {
+        try {
+            await axios.put(`${WA_API_BASE}/api/whatsapp/config/keys/${id}`, { name, key });
+            return true;
+        } catch (error) {
+            console.error('Failed to update API key:', error);
+            return false;
+        }
+    };
+
+    const removeKey = async (id: string) => {
+        try {
+            await axios.delete(`${WA_API_BASE}/api/whatsapp/config/keys/${id}`);
+            return true;
+        } catch (error) {
+            console.error('Failed to remove API key:', error);
+            return false;
+        }
+    };
+
+    const activateKey = async (id: string) => {
+        try {
+            await axios.patch(`${WA_API_BASE}/api/whatsapp/config/keys/${id}/activate`);
+            return true;
+        } catch (error) {
+            console.error('Failed to activate API key:', error);
+            return false;
+        }
+    };
+
     useEffect(() => {
         fetchStatus();
         const interval = setInterval(fetchStatus, 10000);
@@ -260,6 +319,11 @@ export function useWhatsApp() {
         removeContact,
         updateTargetMode,
         getChatHistory,
+        getKeys,
+        addKey,
+        updateKey,
+        removeKey,
+        activateKey,
         handleInit,
         handleLogout
     };
