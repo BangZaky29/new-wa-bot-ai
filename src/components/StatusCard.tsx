@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Settings, Power, XCircle, Cpu } from 'lucide-react';
+import { ConfirmModal } from './ConfirmModal';
 import type { ConnectionStatus } from '../types';
 
 interface StatusCardProps {
@@ -10,6 +12,8 @@ interface StatusCardProps {
 }
 
 export function StatusCard({ status, initializing, onInit, onLogout, sessionId }: StatusCardProps) {
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
     return (
         <div className="glass-card rounded-[2rem] p-8">
             <h3 className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-6 flex items-center gap-2">
@@ -56,13 +60,26 @@ export function StatusCard({ status, initializing, onInit, onLogout, sessionId }
 
             {status.isConnected && (
                 <button
-                    onClick={onLogout}
+                    onClick={() => setIsConfirmOpen(true)}
                     className="w-full mt-8 py-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 font-bold rounded-2xl transition-all flex items-center justify-center gap-2 group"
                 >
                     <Power className="w-5 h-5 group-hover:scale-110 transition-transform" />
                     SHUTDOWN BOT
                 </button>
             )}
+
+            <ConfirmModal
+                isOpen={isConfirmOpen}
+                title="Matikan Bot?"
+                message="Anda yakin ingin mematikan instance bot ini? Sesi WhatsApp akan terputus dan AI tidak akan merespon pesan lagi."
+                onConfirm={() => {
+                    onLogout();
+                    setIsConfirmOpen(false);
+                }}
+                onCancel={() => setIsConfirmOpen(false)}
+                confirmText="Ya, Matikan"
+                variant="danger"
+            />
         </div>
     );
 }

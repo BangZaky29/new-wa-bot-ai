@@ -1,18 +1,22 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Users, MessageSquare, Clock, ArrowRight } from 'lucide-react';
 import { useWhatsApp } from '../hooks/useWhatsApp';
+import { ChatPreview } from './ChatPreview';
 import type { ChatStats } from '../types';
 
 export function Dashboard() {
     const { fetchStats } = useWhatsApp();
     const [stats, setStats] = useState<ChatStats[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedChat, setSelectedChat] = useState<{ jid: string, name: string } | null>(null);
 
     useEffect(() => {
         const loadStats = async () => {
             const data = await fetchStats();
-            setStats(data);
+            if (data.success && data.stats) {
+                setStats(data.stats);
+            }
             setLoading(false);
         };
         loadStats();
@@ -83,8 +87,9 @@ export function Dashboard() {
                             <tr className="text-slate-500 text-[10px] uppercase tracking-[0.2em] bg-slate-900/40">
                                 <th className="px-6 py-4 font-black">User / Number</th>
                                 <th className="px-6 py-4 font-black">Total Chat</th>
+                                <th className="px-6 py-4 font-black">Latency</th>
                                 <th className="px-6 py-4 font-black">Last Activity</th>
-                                <th className="px-6 py-4 font-black">Action</th>
+                                <th className="px-6 py-4 font-black text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-800/50">
@@ -112,6 +117,23 @@ export function Dashboard() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
+                                        {chat.last_latency ? (
+                                            <div className="flex flex-col">
+                                                <span className={`text-xs font-bold ${chat.last_latency < 3000 ? 'text-green-500' : chat.last_latency < 7000 ? 'text-yellow-500' : 'text-orange-500'}`}>
+                                                    {(chat.last_latency / 1000).toFixed(1)}s
+                                                </span>
+                                                <div className="w-12 h-1 background-slate-800 rounded-full mt-1 overflow-hidden">
+                                                    <div
+                                                        className={`h-full ${chat.last_latency < 3000 ? 'bg-green-500' : chat.last_latency < 7000 ? 'bg-yellow-500' : 'bg-orange-500'}`}
+                                                        style={{ width: `${Math.min(100, (chat.last_latency / 10000) * 100)}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <span className="text-[10px] text-slate-600 font-bold italic">N/A</span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4">
                                         <p className="text-xs text-slate-400">
                                             {new Date(chat.last_active).toLocaleString('id-ID', {
                                                 hour: '2-digit',
@@ -121,8 +143,11 @@ export function Dashboard() {
                                             })}
                                         </p>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <button className="p-2 hover:bg-slate-700 rounded-lg transition-colors">
+                                    <td className="px-6 py-4 text-right">
+                                        <button
+                                            onClick={() => setSelectedChat({ jid: chat.jid, name: chat.push_name })}
+                                            className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                                        >
                                             <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-cyan-500 transition-colors" />
                                         </button>
                                     </td>
@@ -139,6 +164,16 @@ export function Dashboard() {
                     </table>
                 </div>
             </div>
+
+            <AnimatePresence>
+                {selectedChat && (
+                    <ChatPreview
+                        jid={selectedChat.jid}
+                        pushName={selectedChat.name}
+                        onClose={() => setSelectedChat(null)}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }

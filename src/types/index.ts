@@ -25,4 +25,5 @@ export interface ChatStats {
     push_name: string;
     msg_count: number;
     last_active: string;
+    last_latency?: number | null;
 }
