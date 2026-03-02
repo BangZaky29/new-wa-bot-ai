@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Settings, Power, XCircle, Cpu } from 'lucide-react';
 import { ConfirmModal } from './ConfirmModal';
-import type { ConnectionStatus } from '../types';
+import type { ConnectionStatus } from '../../types';
 
 interface StatusCardProps {
     status: ConnectionStatus;

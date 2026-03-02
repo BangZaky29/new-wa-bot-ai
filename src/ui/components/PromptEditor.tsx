@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCcw, Sparkles, Plus, Trash2, Check, Pencil } from 'lucide-react';
-import { useWhatsApp } from '../hooks/useWhatsApp';
+import { useWhatsApp } from '../../core/hooks/useWhatsApp';
 import { ConfirmModal } from './ConfirmModal';
-import type { PromptItem } from '../hooks/useWhatsApp';
+import type { PromptItem } from '../../core/hooks/useWhatsApp';
 
 export const PromptEditor: React.FC = () => {
     const { getPrompts, savePrompt, updatePrompt, activatePrompt, removePrompt } = useWhatsApp();

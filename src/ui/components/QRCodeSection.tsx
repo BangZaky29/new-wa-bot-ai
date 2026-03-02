@@ -1,5 +1,5 @@
 import { CheckCircle2, QrCode } from 'lucide-react';
-import type { ConnectionStatus } from '../types';
+import type { ConnectionStatus } from '../../types';
 
 interface QRCodeSectionProps {
     status: ConnectionStatus;

@@ -18,7 +18,7 @@ export interface Metric {
     color: string;
 }
 
-export type TabId = 'control' | 'logs' | 'config' | 'stats';
+export type TabId = 'control' | 'logs' | 'config' | 'stats' | 'profile';
 
 export interface ChatStats {
     jid: string;

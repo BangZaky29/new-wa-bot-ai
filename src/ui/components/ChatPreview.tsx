@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { X, User, Bot, Clock, RotateCcw } from 'lucide-react';
-import { useWhatsApp } from '../hooks/useWhatsApp';
+import { useWhatsApp } from '../../core/hooks/useWhatsApp';
 
 interface ChatPreviewProps {
     jid: string;

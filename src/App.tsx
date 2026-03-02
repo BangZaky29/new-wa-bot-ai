@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { apiService } from './core/services/api.service';
 import {
   BarChart3,
   Bot,
@@ -7,25 +8,84 @@ import {
   MessageSquare,
   Zap,
   ShieldCheck,
-  Terminal
+  Terminal,
+  User
 } from 'lucide-react';
 
 // Hooks & Types
-import { useWhatsApp } from './hooks/useWhatsApp';
+import { useWhatsApp } from './core/hooks/useWhatsApp';
 import type { TabId } from './types';
 
 // Components
-import { StatusCard } from './components/StatusCard';
-import { QRCodeSection } from './components/QRCodeSection';
-import { LogMonitor } from './components/LogMonitor';
-import { Dashboard } from './components/Dashboard';
-import { PromptEditor } from './components/PromptEditor';
-import { ContactManager } from './components/ContactManager';
-import { ApiKeyManager } from './components/ApiKeyManager';
+import { StatusCard } from './ui/components/StatusCard';
+import { QRCodeSection } from './ui/components/QRCodeSection';
+import { LogMonitor } from './ui/components/LogMonitor';
+import { Dashboard } from './pages/Dashboard/Dashboard';
+import { PromptEditor } from './ui/components/PromptEditor';
+import { ContactManager } from './ui/components/ContactManager';
+import { ApiKeyManager } from './ui/components/ApiKeyManager';
+import { Profile } from './pages/Profile/Profile';
 
-const SESSION_ID = import.meta.env.VITE_WA_SESSION_ID || 'wa-bot-ai';
+// Auth Pages (New)
+import Login from './pages/Auth/Login.tsx';
+import Register from './pages/Auth/Register.tsx';
 
 export default function App() {
+  const [activeTab, setActiveTab] = useState<TabId>('control');
+  const [view, setView] = useState<'login' | 'register' | 'dashboard'>(() => {
+    const saved = localStorage.getItem('wa_view');
+    return (saved as any) || 'login';
+  });
+  const [user, setUser] = useState<any>(() => {
+    const saved = localStorage.getItem('wa_user');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('wa_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('wa_user');
+    }
+  }, [user]);
+
+  useEffect(() => {
+    localStorage.setItem('wa_view', view);
+  }, [view]);
+
+  // Validate session on mount
+  useEffect(() => {
+    const validateSession = async () => {
+      if (user?.id) {
+        try {
+          const res = await apiService.getProfile(user.id);
+          if (!res.success || !res.user) {
+            console.warn('Session invalid or user deleted, logging out...');
+            logout();
+          } else {
+            // Update local storage with fresh data
+            setUser(res.user);
+          }
+        } catch (err) {
+          console.error('Session validation failed:', err);
+        }
+      }
+    };
+    validateSession();
+  }, []);
+
+  const handleLoginSuccess = (userData: any) => {
+    setUser(userData);
+    setView('dashboard');
+  };
+
+  const logout = () => {
+    setUser(null);
+    setView('login');
+    localStorage.removeItem('wa_user');
+    localStorage.removeItem('wa_view');
+  };
+
   const {
     status,
     loading,
@@ -34,9 +94,10 @@ export default function App() {
     fetchStatus,
     handleInit,
     handleLogout
-  } = useWhatsApp();
+  } = useWhatsApp(user?.id);
 
-  const [activeTab, setActiveTab] = useState<TabId>('control');
+  if (view === 'login') return <Login onLoginSuccess={handleLoginSuccess} onSwitchRegister={() => setView('register')} />;
+  if (view === 'register') return <Register onRegisterSuccess={handleLoginSuccess} onSwitchLogin={() => setView('login')} />;
 
   return (
     <div className="min-h-screen w-full bg-[#0f172a] text-slate-200 font-sans selection:bg-cyan-500/30">
@@ -57,7 +118,9 @@ export default function App() {
               <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-2">
                 WA-BOT-AI <span className="hidden sm:inline text-[10px] bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-500/30">ALPHA 1.1</span>
               </h1>
-              <p className="text-slate-400 text-sm md:text-base font-medium">Auto-Response AI Assistant for WhatsApp</p>
+              <p className="text-slate-400 text-sm md:text-base font-medium">
+                Welcome back, <span className="text-cyan-400 font-bold">{user?.full_name || user?.username || user?.phone || user?.identifier || 'Agent'}</span>
+              </p>
             </div>
           </div>
 
@@ -90,7 +153,7 @@ export default function App() {
               initializing={initializing}
               onInit={handleInit}
               onLogout={handleLogout}
-              sessionId={SESSION_ID}
+              sessionId={user?.id}
             />
 
             {/* Quick Metrics */}
@@ -121,7 +184,8 @@ export default function App() {
                   { id: 'stats', label: 'Stats', icon: BarChart3 },
                   { id: 'control', label: 'Connect', icon: Bot },
                   { id: 'logs', label: 'Monitor', icon: Terminal },
-                  { id: 'config', label: 'Security', icon: ShieldCheck }
+                  { id: 'config', label: 'Security', icon: ShieldCheck },
+                  { id: 'profile', label: 'Profile', icon: User }
                 ].map(tab => (
                   <button
                     key={tab.id}
@@ -165,7 +229,7 @@ export default function App() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                 >
-                  <LogMonitor sessionId={SESSION_ID} />
+                  <LogMonitor sessionId={user?.id} />
                 </motion.div>
               )}
               {activeTab === 'config' && (
@@ -181,6 +245,24 @@ export default function App() {
                   <PromptEditor />
                   <div className="h-px bg-slate-800/50 w-full" />
                   <ContactManager />
+                </motion.div>
+              )}
+              {activeTab === 'profile' && (
+                <motion.div
+                  key="profile"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                >
+                  <Profile
+                    user={user}
+                    status={status}
+                    onLogout={logout}
+                    onNavigateAuth={(v) => {
+                      logout();
+                      setView(v);
+                    }}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, MessageSquare, Clock, ArrowRight } from 'lucide-react';
-import { useWhatsApp } from '../hooks/useWhatsApp';
-import { ChatPreview } from './ChatPreview';
-import type { ChatStats } from '../types';
+import { useWhatsApp } from '../../core/hooks/useWhatsApp';
+import { ChatPreview } from '../../ui/components/ChatPreview';
+import type { ChatStats } from '../../types';
 
 export function Dashboard() {
     const { fetchStats } = useWhatsApp();

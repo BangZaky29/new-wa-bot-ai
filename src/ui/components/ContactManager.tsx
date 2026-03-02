@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Trash2, Shield, ShieldAlert, Check, X, Pencil, Plus } from 'lucide-react';
-import { useWhatsApp } from '../hooks/useWhatsApp';
+import { useWhatsApp } from '../../core/hooks/useWhatsApp';
 import { ConfirmModal } from './ConfirmModal';
-import type { ContactItem } from '../hooks/useWhatsApp';
+import type { ContactItem } from '../../core/hooks/useWhatsApp';
 
 export function ContactManager() {
     const { getContacts, addContact, updateContact, removeContact, updateTargetMode } = useWhatsApp();

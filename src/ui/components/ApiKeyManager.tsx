@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Key, Plus, Trash2, Check, Pencil, Copy, Eye, EyeOff } from 'lucide-react';
-import { useWhatsApp } from '../hooks/useWhatsApp';
+import { useWhatsApp } from '../../core/hooks/useWhatsApp';
 import { ConfirmModal } from './ConfirmModal';
-import type { ApiKeyItem } from '../hooks/useWhatsApp';
+import type { ApiKeyItem } from '../../core/hooks/useWhatsApp';
 
 export const ApiKeyManager: React.FC = () => {
     const { getKeys, addKey, updateKey, removeKey, activateKey } = useWhatsApp();
@@ -11,7 +11,7 @@ export const ApiKeyManager: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
     const [editingKey, setEditingKey] = useState<ApiKeyItem | null>(null);
-    const [newKey, setNewKey] = useState({ name: '', value: '' });
+    const [newKey, setNewKey] = useState({ name: '', value: '', model: 'gemini-1.5-flash', version: 'v1beta' });
     const [showKeyId, setShowKeyId] = useState<string | null>(null);
     const [message, setMessage] = useState<{ type: 'success' | 'err', text: string } | null>(null);
     const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean, key: ApiKeyItem | null }>({
@@ -40,16 +40,16 @@ export const ApiKeyManager: React.FC = () => {
 
         let success;
         if (editingKey) {
-            success = await updateKey(editingKey.id, newKey.name, newKey.value || undefined);
+            success = await updateKey(editingKey.id, newKey.name, newKey.value || undefined, newKey.model, newKey.version);
         } else {
-            success = await addKey(newKey.name, newKey.value);
+            success = await addKey(newKey.name, newKey.value, newKey.model, newKey.version);
         }
 
         if (success) {
             showMsg(editingKey ? 'Key updated!' : 'Key added!');
             setIsAdding(false);
             setEditingKey(null);
-            setNewKey({ name: '', value: '' });
+            setNewKey({ name: '', value: '', model: 'gemini-1.5-flash', version: 'v1beta' });
             loadKeys();
         } else {
             showMsg('Failed to save key', 'err');
@@ -80,7 +80,8 @@ export const ApiKeyManager: React.FC = () => {
     };
 
     const maskKey = (key: string) => {
-        if (key.length <= 8) return '********';
+        if (!key) return '';
+        if (key.length <= 12) return '********';
         return `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
     };
 
@@ -108,7 +109,7 @@ export const ApiKeyManager: React.FC = () => {
                     onClick={() => {
                         setIsAdding(!isAdding);
                         setEditingKey(null);
-                        setNewKey({ name: '', value: '' });
+                        setNewKey({ name: '', value: '', model: 'gemini-1.5-flash', version: 'v1beta' });
                     }}
                     className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl text-xs font-black transition-all shadow-lg shadow-cyan-900/20 active:scale-95"
                 >
@@ -133,7 +134,7 @@ export const ApiKeyManager: React.FC = () => {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="glass-card rounded-3xl p-6 border-slate-700/30 bg-slate-900/40"
+                        className="glass-card rounded-3xl p-6 border-slate-700/30 bg-slate-900/40 relative overflow-visible"
                     >
                         <div className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -141,7 +142,7 @@ export const ApiKeyManager: React.FC = () => {
                                     <label className="text-[10px] text-slate-500 font-black uppercase tracking-widest ml-1">Key Name</label>
                                     <input
                                         type="text"
-                                        placeholder="e.g. Production Key"
+                                        placeholder="e.g. AI-SAYA"
                                         className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-5 py-3.5 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-slate-700 font-medium"
                                         value={newKey.name}
                                         onChange={(e) => setNewKey({ ...newKey, name: e.target.value })}
@@ -157,10 +158,30 @@ export const ApiKeyManager: React.FC = () => {
                                         onChange={(e) => setNewKey({ ...newKey, value: e.target.value })}
                                     />
                                 </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] text-slate-500 font-black uppercase tracking-widest ml-1">Model Name</label>
+                                    <input
+                                        type="text"
+                                        placeholder="gemini-1.5-flash"
+                                        className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-5 py-3.5 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-slate-700 font-medium"
+                                        value={newKey.model}
+                                        onChange={(e) => setNewKey({ ...newKey, model: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] text-slate-500 font-black uppercase tracking-widest ml-1">API Version</label>
+                                    <input
+                                        type="text"
+                                        placeholder="v1beta (optional)"
+                                        className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-5 py-3.5 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-slate-700 font-medium"
+                                        value={newKey.version}
+                                        onChange={(e) => setNewKey({ ...newKey, version: e.target.value })}
+                                    />
+                                </div>
                             </div>
                             <button
                                 onClick={handleSave}
-                                className="w-full py-4 bg-green-600 hover:bg-green-500 text-white rounded-2xl text-sm font-black transition-all shadow-lg shadow-green-900/20 flex items-center justify-center gap-2 active:scale-[0.98]"
+                                className="w-full py-4 bg-cyan-600 hover:bg-cyan-500 text-white rounded-2xl text-sm font-black transition-all shadow-lg shadow-cyan-900/20 flex items-center justify-center gap-2 active:scale-[0.98]"
                             >
                                 <Check className="w-5 h-5" />
                                 {editingKey ? 'UPDATE API KEY' : 'SAVE NEW API KEY'}
@@ -181,59 +202,65 @@ export const ApiKeyManager: React.FC = () => {
                         <motion.div
                             key={k.id}
                             layout
-                            className={`glass-card rounded-[2rem] p-6 border transition-all cursor-default relative overflow-hidden group ${k.is_active ? 'border-cyan-500/50 bg-cyan-500/5 shadow-cyan-500/10' : 'border-slate-800/50 hover:border-slate-700'}`}
+                            className={`glass-card rounded-[2.5rem] p-7 border transition-all cursor-default relative overflow-hidden group ${k.is_active ? 'border-cyan-500/40 bg-[#0a1120] shadow-[0_0_30px_rgba(6,182,212,0.1)]' : 'border-slate-800/50 hover:border-slate-700 bg-slate-900/20'}`}
                         >
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="flex items-center gap-3">
-                                    <div className={`p-3 rounded-2xl ${k.is_active ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/20' : 'bg-slate-800 text-slate-400'}`}>
-                                        <Key className="w-5 h-5" />
+                            <div className="flex justify-between items-start mb-6">
+                                <div className="flex items-center gap-4">
+                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${k.is_active ? 'bg-cyan-500 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)]' : 'bg-slate-800/80 text-slate-500'}`}>
+                                        <Key className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <h4 className="text-white font-bold text-base leading-tight">{k.name}</h4>
-                                        <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-0.5">
+                                        <h4 className="text-white font-black text-lg tracking-tight leading-tight uppercase">{k.name}</h4>
+                                        <p className={`text-[10px] font-black uppercase tracking-widest mt-1 ${k.is_active ? 'text-cyan-500' : 'text-slate-600'}`}>
                                             {k.is_active ? 'Currently Active' : 'Standby'}
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
                                     <button
                                         onClick={() => {
                                             setEditingKey(k);
-                                            setNewKey({ name: k.name, value: '' });
+                                            setNewKey({ name: k.name, value: '', model: k.model_name, version: k.api_version });
                                             setIsAdding(true);
                                             window.scrollTo({ top: 0, behavior: 'smooth' });
                                         }}
-                                        className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all"
+                                        className="p-2.5 text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-xl transition-all border border-transparent hover:border-slate-700"
                                     >
                                         <Pencil className="w-4 h-4" />
                                     </button>
                                     <button
                                         onClick={() => setConfirmDelete({ isOpen: true, key: k })}
-                                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                        className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="bg-slate-950/40 rounded-2xl p-4 mb-5 border border-slate-800/30">
+                            <div className="bg-[#050914] rounded-2xl p-5 mb-6 border border-slate-800/50 group-hover:border-cyan-500/20 transition-colors">
                                 <div className="flex items-center justify-between">
-                                    <code className="text-xs font-mono text-cyan-400 tracking-wider">
+                                    <code className="text-sm font-mono text-cyan-400/90 tracking-[0.15em] font-bold">
                                         {showKeyId === k.id ? k.key_value : maskKey(k.key_value)}
                                     </code>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2.5">
                                         <button
                                             onClick={() => setShowKeyId(showKeyId === k.id ? null : k.id)}
-                                            className="p-1.5 text-slate-500 hover:text-white transition-colors"
+                                            className="p-1.5 text-slate-600 hover:text-cyan-400 transition-colors"
                                         >
-                                            {showKeyId === k.id ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                            {showKeyId === k.id ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                         </button>
                                         <button
                                             onClick={() => copyToClipboard(k.key_value)}
-                                            className="p-1.5 text-slate-500 hover:text-white transition-colors"
+                                            className="p-1.5 text-slate-600 hover:text-cyan-400 transition-colors"
                                         >
-                                            <Copy className="w-3.5 h-3.5" />
+                                            <Copy className="w-4 h-4" />
                                         </button>
+                                    </div>
+                                </div>
+                                <div className="mt-4 pt-4 border-t border-slate-800/50 flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                                    <div className="flex gap-3 text-slate-600">
+                                        <span>Model: <span className="text-slate-400">{k.model_name}</span></span>
+                                        <span>v: <span className="text-slate-400">{k.api_version || '-'}</span></span>
                                     </div>
                                 </div>
                             </div>
@@ -241,14 +268,14 @@ export const ApiKeyManager: React.FC = () => {
                             {!k.is_active && (
                                 <button
                                     onClick={() => handleActivate(k.id)}
-                                    className="w-full py-3 bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 hover:text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl border border-slate-700/50 transition-all active:scale-[0.98]"
+                                    className="w-full py-4 bg-slate-800/40 hover:bg-cyan-500/10 text-slate-500 hover:text-cyan-400 text-[10px] font-black uppercase tracking-[0.25em] rounded-2xl border border-slate-700/50 hover:border-cyan-500/30 transition-all active:scale-[0.98]"
                                 >
                                     Activate This Key
                                 </button>
                             )}
                             {k.is_active && (
-                                <div className="w-full py-3 bg-cyan-500/10 text-cyan-500 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl border border-cyan-500/20 text-center flex items-center justify-center gap-2">
-                                    <Check className="w-3 h-3" /> System Primary
+                                <div className="w-full py-4 bg-cyan-500/5 text-cyan-500 text-[10px] font-black uppercase tracking-[0.25em] rounded-2xl border border-cyan-500/20 text-center flex items-center justify-center gap-3">
+                                    <Check className="w-4 h-4" /> SYSTEM PRIMARY
                                 </div>
                             )}
                         </motion.div>
