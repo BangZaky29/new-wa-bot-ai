@@ -53,7 +53,28 @@ export const apiService = {
     },
 
     async getStatus(sessionId: string) {
-        const response = await fetch(`${API_URL}/whatsapp/${sessionId}/status`);
+        const response = await fetch(`${API_URL}/whatsapp/${sessionId}/status`, {
+            headers: { 'x-session-id': sessionId }
+        });
+        return response.json();
+    },
+
+    async getAIControls(sessionId: string) {
+        const response = await fetch(`${API_URL}/whatsapp/config/ai-controls`, {
+            headers: { 'x-session-id': sessionId }
+        });
+        return response.json();
+    },
+
+    async updateAIControls(sessionId: string, controls: any) {
+        const response = await fetch(`${API_URL}/whatsapp/config/ai-controls`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-session-id': sessionId
+            },
+            body: JSON.stringify({ controls }),
+        });
         return response.json();
     }
 };
