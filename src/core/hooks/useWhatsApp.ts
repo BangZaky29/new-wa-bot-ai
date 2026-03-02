@@ -269,10 +269,10 @@ export function useWhatsApp(sessionId?: string) {
 
             // 3. Kirim ke Backend
             await axios.post(`${WA_API_BASE}/api/whatsapp/config/contacts`,
-                { jid: cleanJid, name }, // Sekarang cleanJid sudah terdefinisi
+                { jid: cleanJid, name },
                 {
                     headers: {
-                        'x-session-id': currentSessionId
+                        'X-Session-Id': currentSessionId
                     }
                 }
             );
@@ -326,7 +326,7 @@ export function useWhatsApp(sessionId?: string) {
 
     const getChatHistory = async (jid: string) => {
         try {
-            const currentSessionId = sessionId || localStorage.getItem('user_id');
+            const currentSessionId = sessionId || getStoredUserId();
             if (!currentSessionId) return [];
 
             const response = await axios.get(`${WA_API_BASE}/api/whatsapp/history/${jid}`, {
