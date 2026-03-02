@@ -113,7 +113,12 @@ export function useWhatsApp(sessionId?: string) {
 
     const fetchStats = useCallback(async () => {
         try {
-            const response = await axios.get(`${WA_API_BASE}/api/whatsapp/stats/history`);
+            const currentSessionId = sessionId || localStorage.getItem('user_id');
+            if (!currentSessionId) return { success: false, stats: [], global: { requests: 0, responses: 0 } };
+
+            const response = await axios.get(`${WA_API_BASE}/api/whatsapp/stats/history`, {
+                headers: { 'X-Session-Id': currentSessionId }
+            });
             if (response.data.success) {
                 setGlobalStats(response.data.global || { requests: 0, responses: 0 });
                 return response.data;
@@ -123,7 +128,7 @@ export function useWhatsApp(sessionId?: string) {
             console.error('Failed to fetch stats:', error);
             return { success: false, stats: [], global: { requests: 0, responses: 0 } };
         }
-    }, []);
+    }, [sessionId]);
 
     // PROMPTS
     const getPrompts = async () => {
@@ -287,7 +292,12 @@ export function useWhatsApp(sessionId?: string) {
 
     const getChatHistory = async (jid: string) => {
         try {
-            const response = await axios.get(`${WA_API_BASE}/api/whatsapp/history/${jid}`);
+            const currentSessionId = sessionId || localStorage.getItem('user_id');
+            if (!currentSessionId) return [];
+
+            const response = await axios.get(`${WA_API_BASE}/api/whatsapp/history/${jid}`, {
+                headers: { 'X-Session-Id': currentSessionId }
+            });
             return response.data.history || [];
         } catch (error) {
             console.error('Failed to fetch chat history:', error);
