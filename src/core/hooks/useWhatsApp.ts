@@ -441,6 +441,20 @@ export function useWhatsApp(sessionId?: string) {
         }
     };
 
+    const removeBlockedAttempt = async (jid: string) => {
+        try {
+            const currentSessionId = sessionId || getStoredUserId();
+            await axios.post(`${WA_API_BASE}/api/whatsapp/config/blocked/delete`,
+                { jid },
+                { headers: { 'X-Session-Id': currentSessionId } }
+            );
+            return true;
+        } catch (error) {
+            console.error('Failed to remove blocked attempt:', error);
+            return false;
+        }
+    };
+
     const removeChatHistory = async (jids: string[]) => {
         try {
             const currentSessionId = sessionId || getStoredUserId();
@@ -495,6 +509,7 @@ export function useWhatsApp(sessionId?: string) {
         updateTargetMode,
         getBlockedAttempts,
         whitelistBlocked,
+        removeBlockedAttempt,
         getChatHistory,
         removeChatHistory,
         wipeAccountData,

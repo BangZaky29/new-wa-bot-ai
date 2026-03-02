@@ -8,7 +8,7 @@ import type { ContactItem, BlockedAttempt } from '../../core/hooks/useWhatsApp';
 export function ContactManager() {
     const {
         getContacts, removeContact, updateTargetMode,
-        getBlockedAttempts, whitelistBlocked
+        getBlockedAttempts, whitelistBlocked, removeBlockedAttempt
     } = useWhatsApp();
     const [contacts, setContacts] = useState<ContactItem[]>([]);
     const [blockedAttempts, setBlockedAttempts] = useState<BlockedAttempt[]>([]);
@@ -220,13 +220,25 @@ export function ContactManager() {
                                                         <p className="text-slate-600 text-[9px] mt-1 italic">Diakses pada: {new Date(attempt.attempted_at).toLocaleString()}</p>
                                                     </div>
                                                 </div>
-                                                <button
-                                                    onClick={() => handleWhitelistBlocked(attempt)}
-                                                    className="flex items-center gap-2 px-4 py-2 bg-green-600/10 hover:bg-green-600 text-green-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-green-600/20"
-                                                >
-                                                    <UserPlus className="w-4 h-4" />
-                                                    Izinkan
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={async () => {
+                                                            const success = await removeBlockedAttempt(attempt.jid);
+                                                            if (success) loadData();
+                                                        }}
+                                                        className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-red-500/10 text-slate-400 hover:text-red-500 rounded-xl text-xs font-bold transition-all border border-slate-700 hover:border-red-500/20"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                        Tolak
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleWhitelistBlocked(attempt)}
+                                                        className="flex items-center gap-2 px-4 py-2 bg-green-600/10 hover:bg-green-600 text-green-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-green-600/20"
+                                                    >
+                                                        <UserPlus className="w-4 h-4" />
+                                                        Izinkan
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))
                                     )}

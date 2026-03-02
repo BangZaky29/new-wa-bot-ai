@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Users, MessageSquare, Clock, ArrowRight, Trash2 } from 'lucide-react';
 import { useWhatsApp } from '../../core/hooks/useWhatsApp';
 import { ChatPreview } from '../../ui/components/ChatPreview';
+import { CustomConfirm } from '../../ui/components/CustomConfirm';
 import type { ChatStats } from '../../types';
 
 export function Dashboard() {
@@ -12,6 +13,10 @@ export function Dashboard() {
     const [selectedChat, setSelectedChat] = useState<{ jid: string, name: string } | null>(null);
     const [selectedJids, setSelectedJids] = useState<string[]>([]);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    // Custom Confirm State
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [pendingJids, setPendingJids] = useState<string[]>([]);
 
     useEffect(() => {
         const loadStats = async () => {
@@ -40,12 +45,16 @@ export function Dashboard() {
         }
     };
 
-    const handleDeleteHistory = async (jids: string[]) => {
-        if (!confirm(`Konfirmasi: Hapus total ${jids.length} riwayat chat ini? Data di database akan dihapus permanen.`)) return;
+    const handleDeleteHistory = (jids: string[]) => {
+        setPendingJids(jids);
+        setIsConfirmOpen(true);
+    };
 
+    const handleConfirmDelete = async () => {
+        setIsConfirmOpen(false);
         setIsDeleting(true);
         try {
-            const success = await removeChatHistory(jids);
+            const success = await removeChatHistory(pendingJids);
             if (success) {
                 const data = await fetchStats();
                 if (data.success && data.stats) setStats(data.stats);
@@ -55,6 +64,7 @@ export function Dashboard() {
             console.error("Delete failed:", error);
         } finally {
             setIsDeleting(false);
+            setPendingJids([]);
         }
     };
 
@@ -246,6 +256,19 @@ export function Dashboard() {
                     />
                 )}
             </AnimatePresence>
+
+            <CustomConfirm
+                isOpen={isConfirmOpen}
+                title="Hapus Riwayat?"
+                message={`Anda akan menghapus ${pendingJids.length} sesi chat secara permanen dari database. Tindakan ini tidak dapat dibatalkan.`}
+                confirmText="Hapus Sekarang"
+                cancelText="Batal"
+                onConfirm={handleConfirmDelete}
+                onCancel={() => {
+                    setIsConfirmOpen(false);
+                    setPendingJids([]);
+                }}
+            />
         </div>
     );
 }
