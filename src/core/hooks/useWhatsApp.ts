@@ -28,6 +28,19 @@ export interface ApiKeyItem {
 }
 
 export function useWhatsApp(sessionId?: string) {
+    const getStoredUserId = () => {
+        const saved = localStorage.getItem('wa_user');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                return parsed.id;
+            } catch (e) {
+                return null;
+            }
+        }
+        return null;
+    };
+
     const [status, setStatus] = useState<ConnectionStatus>({
         success: false,
         status: 'disconnected',
@@ -40,9 +53,12 @@ export function useWhatsApp(sessionId?: string) {
     const [globalStats, setGlobalStats] = useState({ requests: 0, responses: 0 });
 
     const fetchQR = useCallback(async () => {
-        if (!sessionId) return;
+        const currentSessionId = sessionId || getStoredUserId();
+        if (!currentSessionId) return;
         try {
-            const response = await axios.get(`${WA_API_BASE}/api/whatsapp/${sessionId}/qr`);
+            const response = await axios.get(`${WA_API_BASE}/api/whatsapp/${currentSessionId}/qr`, {
+                headers: { 'X-Session-Id': currentSessionId }
+            });
             if (response.data.success && response.data.qrImage) {
                 setStatus(prev => ({
                     ...prev,
@@ -56,9 +72,12 @@ export function useWhatsApp(sessionId?: string) {
     }, [sessionId]);
 
     const fetchStatus = useCallback(async () => {
-        if (!sessionId) return;
+        const currentSessionId = sessionId || getStoredUserId();
+        if (!currentSessionId) return;
         try {
-            const response = await axios.get(`${WA_API_BASE}/api/whatsapp/${sessionId}/status`);
+            const response = await axios.get(`${WA_API_BASE}/api/whatsapp/${currentSessionId}/status`, {
+                headers: { 'X-Session-Id': currentSessionId }
+            });
             const data = response.data;
 
             if (data.success) {
@@ -83,10 +102,13 @@ export function useWhatsApp(sessionId?: string) {
     }, [fetchQR, status.qrImage, sessionId]);
 
     const handleInit = async () => {
-        if (!sessionId) return;
+        const currentSessionId = sessionId || getStoredUserId();
+        if (!currentSessionId) return;
         setInitializing(true);
         try {
-            await axios.post(`${WA_API_BASE}/api/whatsapp/${sessionId}/init`);
+            await axios.post(`${WA_API_BASE}/api/whatsapp/${currentSessionId}/init`, {}, {
+                headers: { 'X-Session-Id': currentSessionId }
+            });
             setTimeout(fetchStatus, 2000);
         } catch (error) {
             console.error('Failed to initialize session:', error);
@@ -96,9 +118,12 @@ export function useWhatsApp(sessionId?: string) {
     };
 
     const handleLogout = async () => {
-        if (!sessionId) return;
+        const currentSessionId = sessionId || getStoredUserId();
+        if (!currentSessionId) return;
         try {
-            await axios.post(`${WA_API_BASE}/api/whatsapp/${sessionId}/logout`);
+            await axios.post(`${WA_API_BASE}/api/whatsapp/${currentSessionId}/logout`, {}, {
+                headers: { 'X-Session-Id': currentSessionId }
+            });
             setStatus({
                 success: false,
                 status: 'disconnected',
@@ -113,7 +138,7 @@ export function useWhatsApp(sessionId?: string) {
 
     const fetchStats = useCallback(async () => {
         try {
-            const currentSessionId = sessionId || localStorage.getItem('user_id');
+            const currentSessionId = sessionId || getStoredUserId();
             if (!currentSessionId) return { success: false, stats: [], global: { requests: 0, responses: 0 } };
 
             const response = await axios.get(`${WA_API_BASE}/api/whatsapp/stats/history`, {
@@ -133,8 +158,9 @@ export function useWhatsApp(sessionId?: string) {
     // PROMPTS
     const getPrompts = async () => {
         try {
+            const currentSessionId = sessionId || getStoredUserId();
             const response = await axios.get(`${WA_API_BASE}/api/whatsapp/config/prompts`, {
-                headers: { 'X-Session-Id': sessionId }
+                headers: { 'X-Session-Id': currentSessionId }
             });
             return response.data.prompts as PromptItem[];
         } catch (error) {
@@ -145,9 +171,10 @@ export function useWhatsApp(sessionId?: string) {
 
     const savePrompt = async (name: string, content: string, isActive: boolean = false) => {
         try {
+            const currentSessionId = sessionId || getStoredUserId();
             await axios.post(`${WA_API_BASE}/api/whatsapp/config/prompts`,
                 { name, content, isActive },
-                { headers: { 'X-Session-Id': sessionId } }
+                { headers: { 'X-Session-Id': currentSessionId } }
             );
             return true;
         } catch (error) {
@@ -158,9 +185,10 @@ export function useWhatsApp(sessionId?: string) {
 
     const updatePrompt = async (id: string, name: string, content: string) => {
         try {
+            const currentSessionId = sessionId || getStoredUserId();
             await axios.put(`${WA_API_BASE}/api/whatsapp/config/prompts/${id}`,
                 { name, content },
-                { headers: { 'X-Session-Id': sessionId } }
+                { headers: { 'X-Session-Id': currentSessionId } }
             );
             return true;
         } catch (error) {
@@ -171,9 +199,10 @@ export function useWhatsApp(sessionId?: string) {
 
     const activatePrompt = async (id: string) => {
         try {
+            const currentSessionId = sessionId || getStoredUserId();
             await axios.post(`${WA_API_BASE}/api/whatsapp/config/prompts/activate`,
                 { id },
-                { headers: { 'X-Session-Id': sessionId } }
+                { headers: { 'X-Session-Id': currentSessionId } }
             );
             return true;
         } catch (error) {
@@ -184,8 +213,9 @@ export function useWhatsApp(sessionId?: string) {
 
     const removePrompt = async (id: string) => {
         try {
+            const currentSessionId = sessionId || getStoredUserId();
             await axios.delete(`${WA_API_BASE}/api/whatsapp/config/prompts/${id}`, {
-                headers: { 'X-Session-Id': sessionId }
+                headers: { 'X-Session-Id': currentSessionId }
             });
             return true;
         } catch (error) {
@@ -197,8 +227,9 @@ export function useWhatsApp(sessionId?: string) {
     // CONTACTS
     const getContacts = async () => {
         try {
+            const currentSessionId = sessionId || getStoredUserId();
             const response = await axios.get(`${WA_API_BASE}/api/whatsapp/config/contacts`, {
-                headers: { 'X-Session-Id': sessionId }
+                headers: { 'X-Session-Id': currentSessionId }
             });
             return {
                 contacts: response.data.contacts as ContactItem[],
@@ -213,7 +244,7 @@ export function useWhatsApp(sessionId?: string) {
     const addContact = async (jid: string, name: string) => {
         try {
             // 1. Validasi Session ID
-            const currentSessionId = sessionId || localStorage.getItem('user_id');
+            const currentSessionId = sessionId || getStoredUserId();
 
             if (!currentSessionId) {
                 console.error('❌ Session ID beneran kosong, login dulu bro.');
@@ -254,9 +285,10 @@ export function useWhatsApp(sessionId?: string) {
 
     const updateContact = async (jid: string, name: string) => {
         try {
+            const currentSessionId = sessionId || getStoredUserId();
             await axios.put(`${WA_API_BASE}/api/whatsapp/config/contacts/${jid}`,
                 { name },
-                { headers: { 'X-Session-Id': sessionId } }
+                { headers: { 'X-Session-Id': currentSessionId } }
             );
             return true;
         } catch (error) {
@@ -267,8 +299,9 @@ export function useWhatsApp(sessionId?: string) {
 
     const removeContact = async (jid: string) => {
         try {
+            const currentSessionId = sessionId || getStoredUserId();
             await axios.delete(`${WA_API_BASE}/api/whatsapp/config/contacts/${jid}`, {
-                headers: { 'X-Session-Id': sessionId }
+                headers: { 'X-Session-Id': currentSessionId }
             });
             return true;
         } catch (error) {
@@ -279,9 +312,10 @@ export function useWhatsApp(sessionId?: string) {
 
     const updateTargetMode = async (mode: 'all' | 'specific') => {
         try {
+            const currentSessionId = sessionId || getStoredUserId();
             await axios.post(`${WA_API_BASE}/api/whatsapp/config/target-mode`,
                 { mode },
-                { headers: { 'X-Session-Id': sessionId } }
+                { headers: { 'X-Session-Id': currentSessionId } }
             );
             return true;
         } catch (error) {
@@ -308,8 +342,9 @@ export function useWhatsApp(sessionId?: string) {
     // API KEYS
     const getKeys = async () => {
         try {
+            const currentSessionId = sessionId || getStoredUserId();
             const response = await axios.get(`${WA_API_BASE}/api/whatsapp/config/keys`, {
-                headers: { 'X-Session-Id': sessionId }
+                headers: { 'X-Session-Id': currentSessionId }
             });
             return response.data.keys as ApiKeyItem[];
         } catch (error) {
@@ -320,9 +355,10 @@ export function useWhatsApp(sessionId?: string) {
 
     const addKey = async (name: string, key: string, model?: string, version?: string) => {
         try {
+            const currentSessionId = sessionId || getStoredUserId();
             await axios.post(`${WA_API_BASE}/api/whatsapp/config/keys`,
                 { name, key, model, version },
-                { headers: { 'X-Session-Id': sessionId } }
+                { headers: { 'X-Session-Id': currentSessionId } }
             );
             return true;
         } catch (error) {
@@ -333,9 +369,10 @@ export function useWhatsApp(sessionId?: string) {
 
     const updateKey = async (id: string, name: string, key?: string, model?: string, version?: string) => {
         try {
+            const currentSessionId = sessionId || getStoredUserId();
             await axios.put(`${WA_API_BASE}/api/whatsapp/config/keys/${id}`,
                 { name, key, model, version },
-                { headers: { 'X-Session-Id': sessionId } }
+                { headers: { 'X-Session-Id': currentSessionId } }
             );
             return true;
         } catch (error) {
@@ -346,8 +383,9 @@ export function useWhatsApp(sessionId?: string) {
 
     const removeKey = async (id: string) => {
         try {
+            const currentSessionId = sessionId || getStoredUserId();
             await axios.delete(`${WA_API_BASE}/api/whatsapp/config/keys/${id}`, {
-                headers: { 'X-Session-Id': sessionId }
+                headers: { 'X-Session-Id': currentSessionId }
             });
             return true;
         } catch (error) {
@@ -358,8 +396,9 @@ export function useWhatsApp(sessionId?: string) {
 
     const activateKey = async (id: string) => {
         try {
+            const currentSessionId = sessionId || getStoredUserId();
             await axios.patch(`${WA_API_BASE}/api/whatsapp/config/keys/${id}/activate`, {}, {
-                headers: { 'X-Session-Id': sessionId }
+                headers: { 'X-Session-Id': currentSessionId }
             });
             return true;
         } catch (error) {

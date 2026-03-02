@@ -39,29 +39,35 @@ export const apiService = {
     },
 
     async getProfile(userId: string) {
-        const response = await fetch(`${API_URL}/auth/me?userId=${userId}`);
+        const response = await fetch(`${API_URL}/auth/me`, {
+            headers: { 'X-Session-Id': userId }
+        });
         return response.json();
     },
 
     async updateProfile(data: { userId: string;[key: string]: any }) {
+        const { userId, ...updates } = data;
         const response = await fetch(`${API_URL}/auth/profile`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Session-Id': userId
+            },
+            body: JSON.stringify(updates),
         });
         return response.json();
     },
 
     async getStatus(sessionId: string) {
         const response = await fetch(`${API_URL}/whatsapp/${sessionId}/status`, {
-            headers: { 'x-session-id': sessionId }
+            headers: { 'X-Session-Id': sessionId }
         });
         return response.json();
     },
 
     async getAIControls(sessionId: string) {
         const response = await fetch(`${API_URL}/whatsapp/config/ai-controls`, {
-            headers: { 'x-session-id': sessionId }
+            headers: { 'X-Session-Id': sessionId }
         });
         return response.json();
     },
@@ -71,7 +77,7 @@ export const apiService = {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'x-session-id': sessionId
+                'X-Session-Id': sessionId
             },
             body: JSON.stringify({ controls }),
         });
