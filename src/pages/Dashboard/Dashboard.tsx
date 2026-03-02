@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, MessageSquare, Clock, ArrowRight } from 'lucide-react';
+import { Users, MessageSquare, Clock, ArrowRight, Trash2 } from 'lucide-react';
 import { useWhatsApp } from '../../core/hooks/useWhatsApp';
 import { ChatPreview } from '../../ui/components/ChatPreview';
 import type { ChatStats } from '../../types';
 
 export function Dashboard() {
-    const { fetchStats } = useWhatsApp();
+    const { fetchStats, removeChatHistory } = useWhatsApp();
     const [stats, setStats] = useState<ChatStats[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedChat, setSelectedChat] = useState<{ jid: string, name: string } | null>(null);
+    const [selectedJids, setSelectedJids] = useState<string[]>([]);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         const loadStats = async () => {
@@ -23,6 +25,38 @@ export function Dashboard() {
         const interval = setInterval(loadStats, 30000); // 30s refresh
         return () => clearInterval(interval);
     }, [fetchStats]);
+
+    const toggleSelect = (jid: string) => {
+        setSelectedJids(prev =>
+            prev.includes(jid) ? prev.filter(j => j !== jid) : [...prev, jid]
+        );
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedJids.length === stats.length) {
+            setSelectedJids([]);
+        } else {
+            setSelectedJids(stats.map(s => s.jid));
+        }
+    };
+
+    const handleDeleteHistory = async (jids: string[]) => {
+        if (!confirm(`Konfirmasi: Hapus total ${jids.length} riwayat chat ini? Data di database akan dihapus permanen.`)) return;
+
+        setIsDeleting(true);
+        try {
+            const success = await removeChatHistory(jids);
+            if (success) {
+                const data = await fetchStats();
+                if (data.success && data.stats) setStats(data.stats);
+                setSelectedJids([]);
+            }
+        } catch (error) {
+            console.error("Delete failed:", error);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -77,14 +111,35 @@ export function Dashboard() {
             </div>
 
             <div className="glass-card rounded-2xl overflow-hidden border border-slate-700/50">
-                <div className="px-6 py-4 border-b border-slate-700/50 bg-slate-800/20">
+                <div className="px-6 py-4 border-b border-slate-700/50 bg-slate-800/20 flex items-center justify-between">
                     <h3 className="text-sm font-bold text-white uppercase tracking-widest">Active Chat Sessions</h3>
+
+                    {selectedJids.length > 0 && (
+                        <motion.button
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            onClick={() => handleDeleteHistory(selectedJids)}
+                            disabled={isDeleting}
+                            className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-red-900/20"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            Hapus Terpilih ({selectedJids.length})
+                        </motion.button>
+                    )}
                 </div>
 
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
                             <tr className="text-slate-500 text-[10px] uppercase tracking-[0.2em] bg-slate-900/40">
+                                <th className="px-6 py-4 font-black w-10">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedJids.length === stats.length && stats.length > 0}
+                                        onChange={toggleSelectAll}
+                                        className="rounded border-slate-700 bg-slate-800 text-cyan-500 focus:ring-cyan-500/20"
+                                    />
+                                </th>
                                 <th className="px-6 py-4 font-black">User / Number</th>
                                 <th className="px-6 py-4 font-black">Total Chat</th>
                                 <th className="px-6 py-4 font-black">Latency</th>
@@ -98,8 +153,16 @@ export function Dashboard() {
                                     key={chat.jid}
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
-                                    className="hover:bg-slate-700/10 transition-colors group"
+                                    className={`hover:bg-slate-700/10 transition-colors group ${selectedJids.includes(chat.jid) ? 'bg-cyan-500/5' : ''}`}
                                 >
+                                    <td className="px-6 py-4">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedJids.includes(chat.jid)}
+                                            onChange={() => toggleSelect(chat.jid)}
+                                            className="rounded border-slate-700 bg-slate-800 text-cyan-500 focus:ring-cyan-500/20"
+                                        />
+                                    </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-xs font-bold text-cyan-500 border border-slate-700 group-hover:border-cyan-500/50 transition-colors">
@@ -144,18 +207,27 @@ export function Dashboard() {
                                         </p>
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button
-                                            onClick={() => setSelectedChat({ jid: chat.jid, name: chat.push_name })}
-                                            className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
-                                        >
-                                            <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-cyan-500 transition-colors" />
-                                        </button>
+                                        <div className="flex items-center justify-end gap-1">
+                                            <button
+                                                onClick={() => handleDeleteHistory([chat.jid])}
+                                                className="p-2 opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                                title="Hapus Riwayat"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => setSelectedChat({ jid: chat.jid, name: chat.push_name })}
+                                                className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                                            >
+                                                <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-cyan-500 transition-colors" />
+                                            </button>
+                                        </div>
                                     </td>
                                 </motion.tr>
                             ))}
                             {stats.length === 0 && (
                                 <tr>
-                                    <td colSpan={4} className="px-6 py-20 text-center text-slate-500 text-sm italic font-medium">
+                                    <td colSpan={6} className="px-6 py-20 text-center text-slate-500 text-sm italic font-medium">
                                         Belum ada riwayat chat yang tersimpan.
                                     </td>
                                 </tr>

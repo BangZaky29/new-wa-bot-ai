@@ -27,6 +27,13 @@ export interface ApiKeyItem {
     created_at: string;
 }
 
+export interface BlockedAttempt {
+    id: string;
+    jid: string;
+    push_name: string;
+    attempted_at: string;
+}
+
 export function useWhatsApp(sessionId?: string) {
     const getStoredUserId = () => {
         const saved = localStorage.getItem('wa_user');
@@ -407,6 +414,60 @@ export function useWhatsApp(sessionId?: string) {
         }
     };
 
+    const getBlockedAttempts = async () => {
+        try {
+            const currentSessionId = sessionId || getStoredUserId();
+            const response = await axios.get(`${WA_API_BASE}/api/whatsapp/config/blocked`, {
+                headers: { 'X-Session-Id': currentSessionId }
+            });
+            return response.data.attempts as BlockedAttempt[];
+        } catch (error) {
+            console.error('Failed to fetch blocked attempts:', error);
+            return [];
+        }
+    };
+
+    const whitelistBlocked = async (jid: string, name: string) => {
+        try {
+            const currentSessionId = sessionId || getStoredUserId();
+            await axios.post(`${WA_API_BASE}/api/whatsapp/config/blocked/whitelist`,
+                { jid, name },
+                { headers: { 'X-Session-Id': currentSessionId } }
+            );
+            return true;
+        } catch (error) {
+            console.error('Failed to whitelist blocked contact:', error);
+            return false;
+        }
+    };
+
+    const removeChatHistory = async (jids: string[]) => {
+        try {
+            const currentSessionId = sessionId || getStoredUserId();
+            await axios.post(`${WA_API_BASE}/api/whatsapp/history/delete`,
+                { jids },
+                { headers: { 'X-Session-Id': currentSessionId } }
+            );
+            return true;
+        } catch (error) {
+            console.error('Failed to remove chat history:', error);
+            return false;
+        }
+    };
+
+    const wipeAccountData = async () => {
+        try {
+            const currentSessionId = sessionId || getStoredUserId();
+            const response = await axios.post(`${WA_API_BASE}/api/whatsapp/account/wipe`, {}, {
+                headers: { 'X-Session-Id': currentSessionId }
+            });
+            return response.data.success;
+        } catch (error) {
+            console.error('Failed to wipe account data:', error);
+            return false;
+        }
+    };
+
     useEffect(() => {
         if (sessionId) {
             fetchStatus();
@@ -432,7 +493,11 @@ export function useWhatsApp(sessionId?: string) {
         updateContact,
         removeContact,
         updateTargetMode,
+        getBlockedAttempts,
+        whitelistBlocked,
         getChatHistory,
+        removeChatHistory,
+        wipeAccountData,
         getKeys,
         addKey,
         updateKey,
