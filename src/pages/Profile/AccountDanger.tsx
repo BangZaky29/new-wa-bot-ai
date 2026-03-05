@@ -35,7 +35,7 @@ export function AccountDanger({ onLogout }: AccountDangerProps) {
                     <div className="flex-1 text-center md:text-left">
                         <h4 className="font-black text-white text-sm uppercase mb-1">Hapus Semua Data Akun</h4>
                         <p className="text-[10px] font-bold text-slate-400 uppercase leading-relaxed max-w-lg">
-                            PERINGATAN KERAS: Semua Riwayat Chat, Daftar Kontak, Prompt, dan API Key akan dihapus PERMANEN dari database. Anda tidak akan bisa mengembalikan data ini.
+                            PERINGATAN KERAS: Semua Riwayat Chat, Daftar Kontak, Langganan Payment, Saldo Token, Prompt, dan API Key akan dihapus PERMANEN dari database. Anda tidak akan bisa mengembalikan data ini.
                         </p>
                     </div>
                     <button
@@ -52,7 +52,7 @@ export function AccountDanger({ onLogout }: AccountDangerProps) {
             <CustomConfirm
                 isOpen={isWipeConfirmOpen}
                 title="Hapus Semua Data?"
-                message="⚠️ PERINGATAN KERAS! Anda akan menghapus SELURUH data Anda (History, Kontak, API Key, Prompt). Lanjutkan ke tahap konfirmasi terakhir?"
+                message="⚠️ PERINGATAN KERAS! Anda akan menghapus SELURUH data Anda (History, Saldo Token, Pembayaran, Kontak, API Key). Lanjutkan ke tahap konfirmasi terakhir?"
                 confirmText="Lanjutkan"
                 cancelText="Batal"
                 onConfirm={() => {
