@@ -9,7 +9,8 @@ import {
   Zap,
   ShieldCheck,
   Terminal,
-  User
+  User,
+  CreditCard
 } from 'lucide-react';
 
 // Hooks & Types
@@ -25,6 +26,7 @@ import { PromptEditor } from './ui/components/PromptEditor';
 import { ContactManager } from './ui/components/ContactManager';
 import { ApiKeyManager } from './ui/components/ApiKeyManager';
 import { Profile } from './pages/Profile/Profile';
+import { Billing } from './pages/Billing/Billing';
 
 // Auth Pages (New)
 import Login from './pages/Auth/Login.tsx';
@@ -183,6 +185,7 @@ export default function App() {
                 {[
                   { id: 'stats', label: 'Stats', icon: BarChart3 },
                   { id: 'control', label: 'Connect', icon: Bot },
+                  { id: 'billing', label: 'Billing', icon: CreditCard },
                   { id: 'logs', label: 'Monitor', icon: Terminal },
                   { id: 'config', label: 'Security', icon: ShieldCheck },
                   { id: 'profile', label: 'Profile', icon: User }
@@ -263,6 +266,16 @@ export default function App() {
                       setView(v);
                     }}
                   />
+                </motion.div>
+              )}
+              {activeTab === 'billing' && (
+                <motion.div
+                  key="billing"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                >
+                  <Billing userId={user?.id} />
                 </motion.div>
               )}
             </AnimatePresence>
