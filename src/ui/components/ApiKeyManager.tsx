@@ -11,7 +11,7 @@ export const ApiKeyManager: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
     const [editingKey, setEditingKey] = useState<ApiKeyItem | null>(null);
-    const [newKey, setNewKey] = useState({ name: '', value: '', model: 'gemini-1.5-flash', version: 'v1beta' });
+    const [newKey, setNewKey] = useState({ name: '', value: '', model: 'gemini-2.5-flash', version: 'v1beta' });
     const [showKeyId, setShowKeyId] = useState<string | null>(null);
     const [message, setMessage] = useState<{ type: 'success' | 'err', text: string } | null>(null);
     const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean, key: ApiKeyItem | null }>({
@@ -49,7 +49,7 @@ export const ApiKeyManager: React.FC = () => {
             showMsg(editingKey ? 'Key updated!' : 'Key added!');
             setIsAdding(false);
             setEditingKey(null);
-            setNewKey({ name: '', value: '', model: 'gemini-1.5-flash', version: 'v1beta' });
+            setNewKey({ name: '', value: '', model: 'gemini-2.5-flash', version: 'v1beta' });
             loadKeys();
         } else {
             showMsg('Failed to save key', 'err');
@@ -109,7 +109,7 @@ export const ApiKeyManager: React.FC = () => {
                     onClick={() => {
                         setIsAdding(!isAdding);
                         setEditingKey(null);
-                        setNewKey({ name: '', value: '', model: 'gemini-1.5-flash', version: 'v1beta' });
+                        setNewKey({ name: '', value: '', model: 'gemini-2.5-flash', version: 'v1beta' });
                     }}
                     className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl text-xs font-black transition-all shadow-lg shadow-cyan-900/20 active:scale-95"
                 >
@@ -162,7 +162,7 @@ export const ApiKeyManager: React.FC = () => {
                                     <label className="text-[10px] text-slate-500 font-black uppercase tracking-widest ml-1">Model Name</label>
                                     <input
                                         type="text"
-                                        placeholder="gemini-1.5-flash"
+                                        placeholder="gemini-2.5-flash"
                                         className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-5 py-3.5 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-slate-700 font-medium"
                                         value={newKey.model}
                                         onChange={(e) => setNewKey({ ...newKey, model: e.target.value })}
