@@ -44,6 +44,21 @@ export function Billing({ userId }: BillingProps) {
             }
         };
         loadSnap();
+
+        // Check for payment status in URL (Redirects from Midtrans)
+        const params = new URLSearchParams(window.location.search);
+        const status = params.get('status');
+        if (status === 'finish') {
+            showSuccess('✅ Pembayaran Berhasil! Data Anda sedang diperbarui.');
+            // Clean up URL
+            window.history.replaceState({}, '', window.location.pathname);
+        } else if (status === 'error') {
+            alert('❌ Terjadi kesalahan pada pembayaran. Silakan coba lagi.');
+            window.history.replaceState({}, '', window.location.pathname);
+        } else if (status === 'pending') {
+            showSuccess('⏳ Pembayaran Tertunda. Silakan selesaikan pembayaran Anda.');
+            window.history.replaceState({}, '', window.location.pathname);
+        }
     }, []);
 
     const fetchData = useCallback(async () => {
