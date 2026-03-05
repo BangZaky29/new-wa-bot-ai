@@ -82,5 +82,13 @@ export const apiService = {
             body: JSON.stringify({ controls }),
         });
         return response.json();
+    },
+
+    async getEngineLogs(userId: string) {
+        // userId acts as X-Session-Id here because the backend userAuth middleware accepts it
+        const response = await fetch(`${API_URL}/whatsapp/logs`, {
+            headers: { 'X-Session-Id': userId }
+        });
+        return response.json();
     }
 };
