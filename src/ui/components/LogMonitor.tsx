@@ -35,7 +35,11 @@ export function LogMonitor({ sessionId }: { sessionId: string }) {
 
         let delay = 0;
         initLogs.forEach(log => {
-            setTimeout(() => setLogs(prev => [...prev, log]), delay);
+            setTimeout(() => setLogs(prev => {
+                // Prevent duplicate keys in React Strict Mode
+                if (prev.some(p => p.id === log.id)) return prev;
+                return [...prev, log];
+            }), delay);
             delay += 600;
         });
     }, [sessionId]);
