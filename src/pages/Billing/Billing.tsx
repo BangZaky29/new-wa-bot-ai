@@ -96,22 +96,28 @@ export function Billing({ userId }: BillingProps) {
     const [paymentLoading, setPaymentLoading] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
     const [snapReady, setSnapReady] = useState(false);
+    const [successMsg, setSuccessMsg] = useState('');
 
     // ─── Load Midtrans Snap.js ───
     useEffect(() => {
         const loadSnap = async () => {
-            const config = await paymentApi.getMidtransConfig();
-            if (config.success && config.snapJsUrl) {
-                // Check if already loaded
-                if ((window as any).snap) {
-                    setSnapReady(true);
-                    return;
+            try {
+                const config = await paymentApi.getMidtransConfig();
+                if (config.success && config.snapJsUrl) {
+                    // Check if already loaded
+                    if ((window as any).snap) {
+                        setSnapReady(true);
+                        return;
+                    }
+                    const script = document.createElement('script');
+                    script.src = config.snapJsUrl;
+                    script.setAttribute('data-client-key', config.clientKey);
+                    script.onload = () => setSnapReady(true);
+                    script.onerror = () => console.error('Failed to load Midtrans Snap.js');
+                    document.head.appendChild(script);
                 }
-                const script = document.createElement('script');
-                script.src = config.snapJsUrl;
-                script.setAttribute('data-client-key', config.clientKey);
-                script.onload = () => setSnapReady(true);
-                document.head.appendChild(script);
+            } catch (err) {
+                console.error('Failed to load Midtrans config:', err);
             }
         };
         loadSnap();
@@ -148,14 +154,25 @@ export function Billing({ userId }: BillingProps) {
     useEffect(() => { fetchData(); }, [fetchData]);
 
     // ─── Pay with Snap ───
+    const showSuccess = (msg: string) => {
+        setSuccessMsg(msg);
+        setTimeout(() => setSuccessMsg(''), 4000);
+    };
+
     const openSnap = (snapToken: string) => {
         if (!(window as any).snap) {
             alert('Payment system is loading. Please try again.');
             return;
         }
         (window as any).snap.pay(snapToken, {
-            onSuccess: () => { fetchData(); },
-            onPending: () => { fetchData(); },
+            onSuccess: () => {
+                showSuccess('✅ Pembayaran berhasil! Memperbarui data...');
+                setTimeout(() => fetchData(), 2000);
+            },
+            onPending: () => {
+                showSuccess('⏳ Menunggu pembayaran...');
+                fetchData();
+            },
             onError: () => { alert('Pembayaran gagal. Silakan coba lagi.'); },
             onClose: () => { console.log('Snap popup closed'); }
         });
@@ -216,6 +233,19 @@ export function Billing({ userId }: BillingProps) {
 
     return (
         <div className="space-y-8">
+            {/* ─── Success Toast ─── */}
+            <AnimatePresence>
+                {successMsg && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="fixed top-4 right-4 z-50 px-6 py-3 bg-green-500/90 backdrop-blur text-white font-bold rounded-xl shadow-lg shadow-green-500/30"
+                    >
+                        {successMsg}
+                    </motion.div>
+                )}
+            </AnimatePresence>
             {/* ─── Current Plan Banner ─── */}
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
