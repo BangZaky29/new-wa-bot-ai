@@ -2,16 +2,14 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiService } from './core/services/api.service';
 import {
-  BarChart3,
-  Bot,
   RefreshCw,
   MessageSquare,
   Zap,
-  ShieldCheck,
-  Terminal,
-  User,
-  CreditCard
+  Bot
 } from 'lucide-react';
+
+// Constants
+import { TABS } from './core/constants/tabs';
 
 // Hooks & Types
 import { useWhatsApp } from './core/hooks/useWhatsApp';
@@ -179,26 +177,21 @@ export default function App() {
 
           {/* Main Content */}
           <main className="lg:col-span-8 space-y-6 md:space-y-8 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-            {/* Tabs - Mobile Responsive */}
             <div className="overflow-x-auto no-scrollbar -mx-2 px-2 md:mx-0 md:px-0">
               <div className="flex gap-1.5 p-1 bg-slate-900/80 backdrop-blur rounded-2xl border border-slate-800 min-w-max">
-                {[
-                  { id: 'stats', label: 'Stats', icon: BarChart3 },
-                  { id: 'control', label: 'Connect', icon: Bot },
-                  { id: 'billing', label: 'Billing', icon: CreditCard },
-                  { id: 'logs', label: 'Monitor', icon: Terminal },
-                  { id: 'config', label: 'Security', icon: ShieldCheck },
-                  { id: 'profile', label: 'Profile', icon: User }
-                ].map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as TabId)}
-                    className={`flex items-center gap-2 px-4 md:px-6 py-2 rounded-xl font-bold text-xs md:text-sm transition-all ${activeTab === tab.id ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
-                  >
-                    <tab.icon className="w-4 h-4" />
-                    {tab.label}
-                  </button>
-                ))}
+                {TABS.map(tab => {
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id as TabId)}
+                      className={`flex items-center gap-2 px-4 md:px-6 py-2 rounded-xl font-bold text-xs md:text-sm transition-all ${activeTab === tab.id ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      {tab.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
