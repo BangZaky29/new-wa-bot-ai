@@ -57,3 +57,12 @@ export interface BlockedAttempt {
     push_name: string;
     attempted_at: string;
 }
+export interface ChatMessage {
+    role: 'user' | 'model';
+    content: string;
+    media_url?: string;
+    media_type?: 'image' | 'video' | 'audio' | 'document';
+    timestamp: string;
+    latency?: number;
+    is_proactive?: boolean;
+}
