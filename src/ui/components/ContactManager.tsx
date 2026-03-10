@@ -213,11 +213,16 @@ export function ContactManager() {
                                             contacts.map((contact, index) => (
                                                 <div key={contact.jid || `contact-${index}`} className="p-4 flex items-center justify-between hover:bg-slate-800/30 transition-colors group">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-cyan-500/10 group-hover:text-cyan-500 transition-colors text-sm font-bold">
+                                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${contact.jid.endsWith('@g.us') ? 'bg-indigo-500/10 text-indigo-500 group-hover:bg-indigo-500/20' : 'bg-slate-800 text-slate-400 group-hover:bg-cyan-500/10 group-hover:text-cyan-500'}`}>
                                                             {contact.push_name?.charAt(0) || contact.jid.charAt(0)}
                                                         </div>
                                                         <div>
-                                                            <p className="text-white font-bold text-sm">{contact.push_name || 'Anonymous'}</p>
+                                                            <div className="flex items-center gap-2">
+                                                                <p className="text-white font-bold text-sm">{contact.push_name || 'Anonymous'}</p>
+                                                                {contact.jid.endsWith('@g.us') && (
+                                                                    <span className="px-1.5 py-0.5 bg-indigo-500/20 text-indigo-400 text-[8px] font-black uppercase rounded border border-indigo-500/30">GROUP</span>
+                                                                )}
+                                                            </div>
                                                             <p className="text-slate-500 text-[10px] font-mono">{contact.jid.split('@')[0]}</p>
                                                         </div>
                                                     </div>
@@ -250,11 +255,16 @@ export function ContactManager() {
                                             blockedAttempts.map((attempt) => (
                                                 <div key={attempt.jid} className="p-4 flex items-center justify-between hover:bg-slate-800/30 transition-colors group">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 text-sm font-bold">
+                                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${attempt.jid.endsWith('@g.us') ? 'bg-indigo-500/10 text-indigo-500' : 'bg-red-500/10 text-red-500'}`}>
                                                             {attempt.push_name?.charAt(0) || attempt.jid.charAt(0)}
                                                         </div>
                                                         <div>
-                                                            <p className="text-white font-bold text-sm">{attempt.push_name || 'Unknown'}</p>
+                                                            <div className="flex items-center gap-2">
+                                                                <p className="text-white font-bold text-sm">{attempt.push_name || 'Unknown'}</p>
+                                                                {attempt.jid.endsWith('@g.us') && (
+                                                                    <span className="px-1.5 py-0.5 bg-indigo-500/20 text-indigo-400 text-[8px] font-black uppercase rounded border border-indigo-500/30">GROUP</span>
+                                                                )}
+                                                            </div>
                                                             <p className="text-slate-500 text-[10px] font-mono">{attempt.jid.split('@')[0]}</p>
                                                             <p className="text-slate-600 text-[9px] mt-1 italic">Diakses pada: {new Date(attempt.attempted_at).toLocaleString()}</p>
                                                         </div>
