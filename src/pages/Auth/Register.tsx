@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus, Phone, Lock, User, ArrowLeft, Eye, EyeOff, AtSign } from 'lucide-react';
+import { UserPlus, Phone, Lock, User, ArrowLeft, Eye, EyeOff, AtSign, Mail } from 'lucide-react';
 import { apiService } from '../../core/services/api.service';
 import OTPVerification from './OTPVerification';
 
@@ -14,6 +14,7 @@ export default function Register({ onRegisterSuccess, onSwitchLogin }: RegisterP
         phone: '',
         username: '',
         full_name: '',
+        email: '',
         password: '',
         confirmPassword: ''
     });
@@ -41,6 +42,7 @@ export default function Register({ onRegisterSuccess, onSwitchLogin }: RegisterP
 
     const strength = getPasswordStrength(form.password);
     const isMatching = form.password && form.confirmPassword ? form.password === form.confirmPassword : null;
+    const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -114,6 +116,20 @@ export default function Register({ onRegisterSuccess, onSwitchLogin }: RegisterP
                                     value={form.username}
                                     onChange={(e) => setForm({ ...form, username: e.target.value.toLowerCase().replace(/\s/g, '') })}
                                     className="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl py-3 pl-11 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-bold text-sm"
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Email Address</label>
+                            <div className="relative">
+                                <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${form.email ? (isEmailValid ? 'text-green-500' : 'text-red-500') : 'text-slate-500'}`} />
+                                <input
+                                    type="email"
+                                    placeholder="your@email.com"
+                                    required
+                                    value={form.email}
+                                    onChange={(e) => setForm({ ...form, email: e.target.value.trim() })}
+                                    className={`w-full bg-slate-800/50 border rounded-xl py-3 pl-11 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 transition-all font-bold text-sm ${form.email ? (isEmailValid ? 'border-green-500/30 focus:ring-green-500' : 'border-red-500/30 focus:ring-red-500') : 'border-slate-700/50 focus:ring-purple-500'}`}
                                 />
                             </div>
                         </div>
@@ -222,7 +238,7 @@ export default function Register({ onRegisterSuccess, onSwitchLogin }: RegisterP
                         </div>
 
                         <button
-                            disabled={loading || isMatching === false || strength.score < 2}
+                            disabled={loading || isMatching === false || strength.score < 2 || !isEmailValid}
                             className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white font-black py-4 rounded-xl shadow-lg shadow-purple-500/20 transition-all mt-4 disabled:opacity-50 text-sm"
                         >
                             {loading ? 'REGISTERING...' : 'GET STARTED'}

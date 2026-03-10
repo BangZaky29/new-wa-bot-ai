@@ -174,7 +174,7 @@ export function ProfileInfo({ user, status, onUpdateUser, onLogoutRequest, onNav
                                         className="w-full bg-slate-800/50 border border-slate-700/30 rounded-lg px-2 py-1 text-xs text-white"
                                     />
                                 ) : (
-                                    <p className="font-bold text-white">{user?.email || 'not_set@example.com'}</p>
+                                    <p className="font-bold text-white">{user?.email || 'Email not provided'}</p>
                                 )}
                             </div>
                         </div>
