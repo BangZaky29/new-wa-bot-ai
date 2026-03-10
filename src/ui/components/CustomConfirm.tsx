@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, X, Trash2, Shield } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 interface CustomConfirmProps {
     isOpen: boolean;
@@ -28,10 +29,10 @@ export function CustomConfirm({
     const glowColor = type === 'danger' ? 'shadow-[0_0_30px_rgba(239,68,68,0.3)]' : type === 'warning' ? 'shadow-[0_0_30px_rgba(234,179,8,0.3)]' : 'shadow-[0_0_30px_rgba(6,182,212,0.3)]';
     const buttonBg = type === 'danger' ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400' : type === 'warning' ? 'bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400' : 'bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400';
 
-    return (
+    return createPortal(
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+                <div className="fixed inset-0 z-[999] flex items-center justify-center p-6">
                     {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
@@ -48,7 +49,7 @@ export function CustomConfirm({
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
                         transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
-                        className="relative w-full max-w-sm rounded-[2.5rem] p-8 bg-slate-900 border border-slate-700 flex flex-col items-center overflow-hidden z-10"
+                        className="relative w-full max-w-sm rounded-[2.5rem] p-8 bg-slate-900 border border-slate-700 flex flex-col items-center overflow-hidden z-10 shadow-2xl"
                     >
                         {/* Glowing Orb Background */}
                         <motion.div
@@ -112,6 +113,7 @@ export function CustomConfirm({
                     </motion.div>
                 </div>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 }

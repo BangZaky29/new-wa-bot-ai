@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, X, Zap } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 interface UpgradeModalProps {
     isOpen: boolean;
@@ -16,10 +17,10 @@ export function UpgradeModal({ isOpen, onClose, featureName, requiredPackage }: 
         // If using a router, this should be a navigate('/billing')
     };
 
-    return (
+    return createPortal(
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-md">
+                <div className="fixed inset-0 z-[999] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-md">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -65,6 +66,7 @@ export function UpgradeModal({ isOpen, onClose, featureName, requiredPackage }: 
                     </motion.div>
                 </div>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 }

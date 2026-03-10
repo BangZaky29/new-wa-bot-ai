@@ -146,8 +146,8 @@ export const ApiKeyManager: React.FC = () => {
                         }}
                         disabled={userFeatures && keys.length >= userFeatures.max_api_keys && !isAdding}
                         className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all shadow-lg active:scale-95 ${userFeatures && keys.length >= userFeatures.max_api_keys && !isAdding
-                                ? 'bg-slate-800 text-slate-500 cursor-not-allowed shadow-none border border-slate-700'
-                                : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-cyan-900/20'
+                            ? 'bg-slate-800 text-slate-500 cursor-not-allowed shadow-none border border-slate-700'
+                            : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-cyan-900/20'
                             }`}
                     >
                         {userFeatures && keys.length >= userFeatures.max_api_keys && !isAdding ? <Lock className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
@@ -237,9 +237,9 @@ export const ApiKeyManager: React.FC = () => {
                         <p className="text-slate-600 text-sm font-medium">No API keys found. Please add one to use the AI.</p>
                     </div>
                 ) : (
-                    keys.map((k) => (
+                    keys.map((k, index) => (
                         <motion.div
-                            key={k.id}
+                            key={k.id || `key-${index}`}
                             layout
                             className={`glass-card rounded-[2.5rem] p-7 border transition-all cursor-default relative overflow-hidden group ${k.is_active ? 'border-cyan-500/40 bg-[#0a1120] shadow-[0_0_30px_rgba(6,182,212,0.1)]' : 'border-slate-800/50 hover:border-slate-700 bg-slate-900/20'}`}
                         >

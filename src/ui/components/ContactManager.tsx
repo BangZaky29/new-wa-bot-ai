@@ -171,8 +171,8 @@ export function ContactManager() {
                                             <p className="text-sm">Belum ada kontak yang diizinkan.</p>
                                         </div>
                                     ) : (
-                                        contacts.map((contact) => (
-                                            <div key={contact.jid} className="p-4 flex items-center justify-between hover:bg-slate-800/30 transition-colors group">
+                                        contacts.map((contact, index) => (
+                                            <div key={contact.jid || `contact-${index}`} className="p-4 flex items-center justify-between hover:bg-slate-800/30 transition-colors group">
                                                 <div className="flex items-center gap-4">
                                                     <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-cyan-500/10 group-hover:text-cyan-500 transition-colors text-sm font-bold">
                                                         {contact.push_name?.charAt(0) || contact.jid.charAt(0)}

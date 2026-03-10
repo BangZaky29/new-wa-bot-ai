@@ -196,9 +196,9 @@ export function Dashboard() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-800/50">
-                            {stats.map((chat) => (
+                            {stats.map((chat, index) => (
                                 <motion.tr
-                                    key={chat.jid}
+                                    key={chat.jid || `chat-${index}`}
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     className={`hover:bg-slate-700/10 transition-colors group ${selectedJids.includes(chat.jid) ? 'bg-cyan-500/5' : ''}`}

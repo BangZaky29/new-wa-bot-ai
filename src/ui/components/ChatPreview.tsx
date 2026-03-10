@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Bot, Clock, RotateCcw } from 'lucide-react';
 import { useWhatsApp } from '../../core/hooks/useWhatsApp';
+import { createPortal } from 'react-dom';
 
 import type { ChatMessage } from '../../types';
 
@@ -37,15 +38,15 @@ export function ChatPreview({ jid, pushName, onClose }: ChatPreviewProps) {
         }
     }, [history]);
 
-    return (
+    return createPortal(
         <>
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
+                className="fixed inset-0 z-[900] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
             >
-                <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl h-[80vh] flex flex-col shadow-2xl overflow-hidden">
+                <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl h-[80vh] flex flex-col shadow-2xl overflow-hidden relative">
                     {/* Header */}
                     <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
                         <div className="flex items-center gap-4">
@@ -143,18 +144,32 @@ export function ChatPreview({ jid, pushName, onClose }: ChatPreviewProps) {
                 </div>
             </motion.div>
 
-            {/* Image Modal */}
-            {selectedImg && (
-                <div
-                    className="fixed inset-0 z-[60] bg-black/95 flex items-center justify-center p-8"
-                    onClick={() => setSelectedImg(null)}
-                >
-                    <button className="absolute top-4 right-4 text-white p-2">
-                        <X className="w-8 h-8" />
-                    </button>
-                    <img src={selectedImg} className="max-w-full max-h-full rounded-lg shadow-2xl" alt="Preview" />
-                </div>
-            )}
-        </>
+            {/* Image Modal (Portal to be on top of the ChatPreview) */}
+            <AnimatePresence>
+                {selectedImg && (
+                    <div
+                        className="fixed inset-0 z-[1000] bg-black/95 flex items-center justify-center p-8 backdrop-blur-xl"
+                        onClick={() => setSelectedImg(null)}
+                    >
+                        <motion.button
+                            className="absolute top-8 right-8 text-white p-3 hover:bg-white/10 rounded-full transition-all"
+                            initial={{ opacity: 0, rotate: -90 }}
+                            animate={{ opacity: 1, rotate: 0 }}
+                        >
+                            <X className="w-8 h-8" />
+                        </motion.button>
+                        <motion.img
+                            src={selectedImg}
+                            className="max-w-full max-h-full rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10"
+                            alt="Preview"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                        />
+                    </div>
+                )}
+            </AnimatePresence>
+        </>,
+        document.body
     );
 }
