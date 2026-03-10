@@ -65,7 +65,19 @@ export function PackageCards({
                             </div>
 
                             <div className="mb-4">
-                                <span className="text-2xl font-black text-white">{formatRupiah(pkg.price)}</span>
+                                {pkg.has_discount ? (
+                                    <div className="flex flex-col">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-2xl font-black text-white">{formatRupiah(pkg.price)}</span>
+                                            <span className="px-1.5 py-0.5 bg-red-500/20 text-red-400 text-[10px] font-black rounded uppercase">
+                                                -{pkg.discount_percentage}%
+                                            </span>
+                                        </div>
+                                        <span className="text-xs text-slate-500 line-through">{formatRupiah(pkg.original_price!)}</span>
+                                    </div>
+                                ) : (
+                                    <span className="text-2xl font-black text-white">{formatRupiah(pkg.price)}</span>
+                                )}
                                 <span className="text-xs text-slate-500 ml-1">/bulan</span>
                             </div>
 

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Crown, AlertTriangle, Gift, RefreshCw, Zap, TrendingUp, Clock } from 'lucide-react';
+import { Crown, AlertTriangle, RefreshCw, Zap, TrendingUp, Clock } from 'lucide-react';
 import type { SubscriptionData } from './types';
 import { PACKAGE_META } from './constants';
 import { formatDate } from './helpers';
@@ -21,7 +21,6 @@ export function CurrentPlanBanner({
         ? Math.max(0, Math.ceil((new Date(subscription.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
         : 0;
 
-    const isTrial = subscription?.payment_method === 'trial';
     const tokenPercent = subscription
         ? Math.min(100, Math.round((tokenBalance / (subscription.packages?.token_amount || 1)) * 100))
         : 0;
@@ -40,24 +39,16 @@ export function CurrentPlanBanner({
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                         <div className="w-14 h-14 bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center">
-                            {isTrial ? <Gift className="w-7 h-7 text-white" /> :
-                                subscription ? <Crown className="w-7 h-7 text-white" /> :
-                                    <AlertTriangle className="w-7 h-7 text-yellow-300" />}
+                            {subscription ? <Crown className="w-7 h-7 text-white" /> :
+                                <AlertTriangle className="w-7 h-7 text-yellow-300" />}
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
                                 <h2 className="text-xl font-black text-white">
                                     {subscription
-                                        ? isTrial
-                                            ? 'TRIAL GRATIS'
-                                            : `Paket ${subscription.packages?.display_name}`
+                                        ? `Paket ${subscription.packages?.display_name}`
                                         : 'Belum Berlangganan'}
                                 </h2>
-                                {isTrial && (
-                                    <span className="px-2 py-0.5 text-[10px] font-black uppercase bg-yellow-500/20 text-yellow-300 rounded-full border border-yellow-500/30">
-                                        3 Hari
-                                    </span>
-                                )}
                             </div>
                             <p className="text-white/60 text-sm mt-0.5">
                                 {subscription

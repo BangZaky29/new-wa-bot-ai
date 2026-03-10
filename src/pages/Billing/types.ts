@@ -6,6 +6,9 @@ export interface PackageData {
     token_amount: number;
     duration_days: number;
     features: Record<string, any>;
+    has_discount?: boolean;
+    discount_percentage?: number;
+    original_price?: number;
 }
 
 export interface SubscriptionData {

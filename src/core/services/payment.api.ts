@@ -7,8 +7,12 @@ const API_URL = baseApi.endsWith('/api') ? baseApi : `${baseApi}/api`;
  */
 export const paymentApi = {
     // ── Packages ──
-    async getPackages() {
-        const res = await fetch(`${API_URL}/payment/packages`);
+    async getPackages(userId?: string) {
+        const headers: Record<string, string> = {};
+        if (userId) {
+            headers['X-Session-Id'] = userId;
+        }
+        const res = await fetch(`${API_URL}/payment/packages`, { headers });
         return res.json();
     },
 

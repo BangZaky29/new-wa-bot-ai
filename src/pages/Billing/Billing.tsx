@@ -65,7 +65,7 @@ export function Billing({ userId }: BillingProps) {
         setLoading(true);
         try {
             const [pkgRes, subRes, tokRes, tierRes] = await Promise.all([
-                paymentApi.getPackages(),
+                paymentApi.getPackages(userId),
                 paymentApi.getMySubscription(userId),
                 paymentApi.getMyTokens(userId),
                 paymentApi.getTopupTiers(),
