@@ -146,10 +146,24 @@ export function useWhatsApp(sessionId?: string) {
         }
     };
 
-    const wipeAccountData = async () => {
+    const requestWipeOtp = async () => {
+        try {
+            const currentSessionId = getSessionId(sessionId);
+            if (!currentSessionId) return false;
+
+            const api = createSessionAxios(sessionId);
+            const response = await api.post('/api/whatsapp/account/wipe/otp');
+            return response.data.success;
+        } catch (error) {
+            console.error('Failed to request wipe OTP:', error);
+            return false;
+        }
+    };
+
+    const wipeAccountData = async (otpCode: string) => {
         try {
             const api = createSessionAxios(sessionId);
-            const response = await api.post('/api/whatsapp/account/wipe');
+            const response = await api.post('/api/whatsapp/account/wipe', { otpCode });
             return response.data.success;
         } catch (error) {
             console.error('Failed to wipe account data:', error);
@@ -178,6 +192,7 @@ export function useWhatsApp(sessionId?: string) {
         getChatHistory,
         removeChatHistory,
         wipeAccountData,
+        requestWipeOtp,
 
         // Extracted features (spread for backward compatibility for now)
         ...promptsHook,

@@ -90,5 +90,25 @@ export const apiService = {
             headers: { 'X-Session-Id': userId }
         });
         return response.json();
+    },
+
+    async requestWipeOtp(userId: string) {
+        const response = await fetch(`${API_URL}/whatsapp/account/wipe/otp`, {
+            method: 'POST',
+            headers: { 'X-Session-Id': userId }
+        });
+        return response.json();
+    },
+
+    async wipeAccountData(userId: string, otpCode: string) {
+        const response = await fetch(`${API_URL}/whatsapp/account/wipe`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Session-Id': userId
+            },
+            body: JSON.stringify({ otpCode }),
+        });
+        return response.json();
     }
 };
