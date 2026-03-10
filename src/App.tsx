@@ -14,6 +14,8 @@ import { TABS } from './core/constants/tabs';
 // Hooks & Types
 import { useWhatsApp } from './core/hooks/useWhatsApp';
 import type { TabId } from './types';
+import { paymentApi } from './core/services/payment.api';
+import { Lock } from 'lucide-react';
 
 // Components
 import { StatusCard } from './ui/components/StatusCard';
@@ -40,6 +42,7 @@ export default function App() {
     const saved = localStorage.getItem('wa_user');
     return saved ? JSON.parse(saved) : null;
   });
+  const [userFeatures, setUserFeatures] = useState<any>(null);
 
   useEffect(() => {
     if (user) {
@@ -73,6 +76,20 @@ export default function App() {
     };
     validateSession();
   }, []);
+
+  // Fetch features
+  const fetchFeatures = async (uid: string) => {
+    try {
+      const res = await paymentApi.getUserFeatures(uid);
+      if (res.success) setUserFeatures(res.features);
+    } catch (err) {
+      console.error('Failed to fetch features:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.id) fetchFeatures(user.id);
+  }, [user?.id]);
 
   const handleLoginSuccess = (userData: any) => {
     setUser(userData);
@@ -181,14 +198,29 @@ export default function App() {
               <div className="flex gap-1.5 p-1 bg-slate-900/80 backdrop-blur rounded-2xl border border-slate-800 min-w-max">
                 {TABS.map(tab => {
                   const Icon = tab.icon;
+                  const isLogs = tab.id === 'logs';
+                  const isConfig = tab.id === 'config';
+
+                  // Check if locked
+                  let isLocked = false;
+                  if (userFeatures) {
+                    if (isLogs && !userFeatures.log_monitor_enabled) isLocked = true;
+                    if (isConfig && userFeatures.max_api_keys === 0 && !userFeatures.proactive_enabled) isLocked = true;
+                  }
+
                   return (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as TabId)}
-                      className={`flex items-center gap-2 px-4 md:px-6 py-2 rounded-xl font-bold text-xs md:text-sm transition-all ${activeTab === tab.id ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                      className={`flex items-center gap-2 px-4 md:px-6 py-2 rounded-xl font-bold text-xs md:text-sm transition-all relative ${activeTab === tab.id ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
                     >
                       <Icon className="w-4 h-4" />
                       {tab.label}
+                      {isLocked && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center border-2 border-[#0f172a] shadow-lg">
+                          <Lock className="w-2 h-2 text-slate-950 font-black" />
+                        </div>
+                      )}
                     </button>
                   );
                 })}

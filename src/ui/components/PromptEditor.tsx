@@ -4,6 +4,7 @@ import { RefreshCcw, Sparkles, Plus, Trash2, Check, Pencil, Lock } from 'lucide-
 import { useWhatsApp } from '../../core/hooks/useWhatsApp';
 import { ConfirmModal } from './ConfirmModal';
 import { SubscribeBadge } from './SubscribeBadge';
+import { FeatureLockOverlay } from './FeatureLockOverlay';
 import { paymentApi } from '../../core/services/payment.api';
 import type { PromptItem } from '../../core/hooks/useWhatsApp';
 
@@ -99,177 +100,186 @@ export const PromptEditor: React.FC = () => {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-500/20 rounded-lg">
-                        <Sparkles className="w-5 h-5 text-purple-400" />
+        <div className="relative overflow-hidden rounded-[2rem]">
+            {userFeatures && userFeatures.max_prompts === 0 && (
+                <FeatureLockOverlay
+                    featureName="Persona Library"
+                    requiredPackage="Pro"
+                    description="Kustomisasi instruksi AI untuk memberikan kepribadian unik pada bot Anda."
+                />
+            )}
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-purple-500/20 rounded-lg">
+                            <Sparkles className="w-5 h-5 text-purple-400" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold text-white leading-tight">AI Persona Library</h2>
+                            <p className="text-xs text-slate-500 font-medium tracking-wide uppercase">Daftar kepribadian asisten AI Anda</p>
+                        </div>
                     </div>
-                    <div>
-                        <h2 className="text-xl font-bold text-white leading-tight">AI Persona Library</h2>
-                        <p className="text-xs text-slate-500 font-medium tracking-wide uppercase">Daftar kepribadian asisten AI Anda</p>
-                    </div>
-                </div>
 
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={loadPrompts}
-                        className="p-2 text-slate-500 hover:text-white transition-colors"
-                        title="Refresh Library"
-                    >
-                        <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={loadPrompts}
+                            className="p-2 text-slate-500 hover:text-white transition-colors"
+                            title="Refresh Library"
+                        >
+                            <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                        </button>
 
-                    {userFeatures && (prompts.length >= userFeatures.max_prompts) && (
-                        <SubscribeBadge
-                            featureName="Extra Personas"
-                            requiredPackage={userFeatures.max_prompts <= 2 ? "Premium" : "Pro"}
-                        />
-                    )}
+                        {userFeatures && (prompts.length >= userFeatures.max_prompts) && !userFeatures.log_monitor_enabled && (
+                            <SubscribeBadge
+                                featureName="Extra Personas"
+                                requiredPackage={userFeatures.max_prompts <= 2 ? "Premium" : "Pro"}
+                            />
+                        )}
 
-                    <button
-                        onClick={() => {
-                            if (userFeatures && prompts.length >= userFeatures.max_prompts && !isAdding) return;
-                            if (isAdding) {
-                                setIsAdding(false);
-                                setEditingPrompt(null);
-                                setNewPrompt({ name: '', content: '' });
-                            } else {
-                                setIsAdding(true);
-                            }
-                        }}
-                        disabled={userFeatures && prompts.length >= userFeatures.max_prompts && !isAdding}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-lg ${userFeatures && prompts.length >= userFeatures.max_prompts && !isAdding
+                        <button
+                            onClick={() => {
+                                if (userFeatures && prompts.length >= userFeatures.max_prompts && !isAdding) return;
+                                if (isAdding) {
+                                    setIsAdding(false);
+                                    setEditingPrompt(null);
+                                    setNewPrompt({ name: '', content: '' });
+                                } else {
+                                    setIsAdding(true);
+                                }
+                            }}
+                            disabled={userFeatures && prompts.length >= userFeatures.max_prompts && !isAdding}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-lg ${userFeatures && prompts.length >= userFeatures.max_prompts && !isAdding
                                 ? 'bg-slate-800 text-slate-500 cursor-not-allowed shadow-none border border-slate-700'
                                 : 'bg-purple-600 hover:bg-purple-500 text-white shadow-purple-900/20'
-                            }`}
-                    >
-                        {userFeatures && prompts.length >= userFeatures.max_prompts && !isAdding ? (
-                            <Lock className="w-4 h-4" />
-                        ) : (
-                            <Plus className={`w-4 h-4 transition-transform ${isAdding ? 'rotate-45' : ''}`} />
-                        )}
-                        {editingPrompt ? 'Cancel Edit' : 'New Persona'}
-                    </button>
+                                }`}
+                        >
+                            {userFeatures && prompts.length >= userFeatures.max_prompts && !isAdding ? (
+                                <Lock className="w-4 h-4" />
+                            ) : (
+                                <Plus className={`w-4 h-4 transition-transform ${isAdding ? 'rotate-45' : ''}`} />
+                            )}
+                            {editingPrompt ? 'Cancel Edit' : 'New Persona'}
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            <AnimatePresence>
-                {isAdding && (
-                    <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="glass-card rounded-2xl border border-purple-500/30 overflow-hidden"
-                    >
-                        <div className="p-6 space-y-4 bg-purple-500/5">
-                            <input
-                                type="text"
-                                placeholder="Nama Persona (e.g. Bestie Introvert)"
-                                value={newPrompt.name}
-                                onChange={(e) => setNewPrompt({ ...newPrompt, name: e.target.value })}
-                                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50"
-                            />
-                            <textarea
-                                placeholder="System Prompt / Instruksi..."
-                                value={newPrompt.content}
-                                onChange={(e) => setNewPrompt({ ...newPrompt, content: e.target.value })}
-                                className="w-full h-32 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 font-mono"
-                            />
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={handleSave}
-                                    className="flex-1 bg-green-600 hover:bg-green-500 text-white rounded-xl text-xs font-bold transition-all p-3 shadow-lg shadow-green-900/20"
-                                >
-                                    {editingPrompt ? 'Update Persona' : 'Save Persona'}
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setIsAdding(false);
-                                        setEditingPrompt(null);
-                                        setNewPrompt({ name: '', content: '' });
-                                    }}
-                                    className="px-6 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition-all"
-                                >
-                                    Cancel
-                                </button>
+                <AnimatePresence>
+                    {isAdding && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="glass-card rounded-2xl border border-purple-500/30 overflow-hidden"
+                        >
+                            <div className="p-6 space-y-4 bg-purple-500/5">
+                                <input
+                                    type="text"
+                                    placeholder="Nama Persona (e.g. Bestie Introvert)"
+                                    value={newPrompt.name}
+                                    onChange={(e) => setNewPrompt({ ...newPrompt, name: e.target.value })}
+                                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50"
+                                />
+                                <textarea
+                                    placeholder="System Prompt / Instruksi..."
+                                    value={newPrompt.content}
+                                    onChange={(e) => setNewPrompt({ ...newPrompt, content: e.target.value })}
+                                    className="w-full h-32 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 font-mono"
+                                />
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleSave}
+                                        className="flex-1 bg-green-600 hover:bg-green-500 text-white rounded-xl text-xs font-bold transition-all p-3 shadow-lg shadow-green-900/20"
+                                    >
+                                        {editingPrompt ? 'Update Persona' : 'Save Persona'}
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setIsAdding(false);
+                                            setEditingPrompt(null);
+                                            setNewPrompt({ name: '', content: '' });
+                                        }}
+                                        className="px-6 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition-all"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {message && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`p-4 rounded-xl text-center font-bold text-sm ${message.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}
+                    >
+                        {message.text}
                     </motion.div>
                 )}
-            </AnimatePresence>
 
-            {message && (
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`p-4 rounded-xl text-center font-bold text-sm ${message.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}
-                >
-                    {message.text}
-                </motion.div>
-            )}
-
-            <div className="grid grid-cols-1 gap-4">
-                {prompts.length === 0 ? (
-                    <div className="p-12 text-center text-slate-500 glass-card rounded-2xl border border-slate-800">
-                        <p className="text-sm">Belum ada persona yang tersimpan.</p>
-                    </div>
-                ) : (
-                    prompts.map((p) => (
-                        <div
-                            key={p.id}
-                            onClick={() => !p.is_active && handleActivate(p.id)}
-                            className={`glass-card rounded-2xl border transition-all cursor-pointer group ${p.is_active ? 'border-green-500/50 bg-green-500/5 ring-1 ring-green-500/20' : 'border-slate-800 hover:border-slate-600'}`}
-                        >
-                            <div className="p-6 flex items-center justify-between gap-4">
-                                <div className="space-y-1 flex-1">
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${p.is_active ? 'border-green-500 bg-green-500' : 'border-slate-600 group-hover:border-slate-400'}`}>
-                                            {p.is_active && <Check className="w-3 h-3 text-white" />}
+                <div className="grid grid-cols-1 gap-4">
+                    {prompts.length === 0 ? (
+                        <div className="p-12 text-center text-slate-500 glass-card rounded-2xl border border-slate-800">
+                            <p className="text-sm">Belum ada persona yang tersimpan.</p>
+                        </div>
+                    ) : (
+                        prompts.map((p) => (
+                            <div
+                                key={p.id}
+                                onClick={() => !p.is_active && handleActivate(p.id)}
+                                className={`glass-card rounded-2xl border transition-all cursor-pointer group ${p.is_active ? 'border-green-500/50 bg-green-500/5 ring-1 ring-green-500/20' : 'border-slate-800 hover:border-slate-600'}`}
+                            >
+                                <div className="p-6 flex items-center justify-between gap-4">
+                                    <div className="space-y-1 flex-1">
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${p.is_active ? 'border-green-500 bg-green-500' : 'border-slate-600 group-hover:border-slate-400'}`}>
+                                                {p.is_active && <Check className="w-3 h-3 text-white" />}
+                                            </div>
+                                            <h4 className="text-white font-bold">{p.name}</h4>
                                         </div>
-                                        <h4 className="text-white font-bold">{p.name}</h4>
+                                        <p className="text-slate-400 text-xs line-clamp-2 italic">"{p.content}"</p>
                                     </div>
-                                    <p className="text-slate-400 text-xs line-clamp-2 italic">"{p.content}"</p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            startEdit(p);
-                                        }}
-                                        className="p-2 text-slate-500 hover:text-cyan-500 transition-colors"
-                                        title="Edit Persona"
-                                    >
-                                        <Pencil className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={async (e) => {
-                                            e.stopPropagation();
-                                            if (!p.is_active) {
-                                                setConfirmDelete({ isOpen: true, prompt: p });
-                                            }
-                                        }}
-                                        disabled={p.is_active}
-                                        className="p-2 text-slate-600 hover:text-red-500 disabled:opacity-30 disabled:hover:text-slate-600 transition-colors"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                startEdit(p);
+                                            }}
+                                            className="p-2 text-slate-500 hover:text-cyan-500 transition-colors"
+                                            title="Edit Persona"
+                                        >
+                                            <Pencil className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={async (e) => {
+                                                e.stopPropagation();
+                                                if (!p.is_active) {
+                                                    setConfirmDelete({ isOpen: true, prompt: p });
+                                                }
+                                            }}
+                                            disabled={p.is_active}
+                                            className="p-2 text-slate-600 hover:text-red-500 disabled:opacity-30 disabled:hover:text-slate-600 transition-colors"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))
-                )}
-            </div>
+                        ))
+                    )}
+                </div>
 
-            <ConfirmModal
-                isOpen={confirmDelete.isOpen}
-                title="Hapus Persona"
-                message={`Anda yakin ingin menghapus persona AI "${confirmDelete.prompt?.name}"? Tindakan ini tidak dapat dibatalkan.`}
-                onConfirm={handleDelete}
-                onCancel={() => setConfirmDelete({ isOpen: false, prompt: null })}
-                confirmText="Ya, Hapus"
-                variant="danger"
-            />
+                <ConfirmModal
+                    isOpen={confirmDelete.isOpen}
+                    title="Hapus Persona"
+                    message={`Anda yakin ingin menghapus persona AI "${confirmDelete.prompt?.name}"? Tindakan ini tidak dapat dibatalkan.`}
+                    onConfirm={handleDelete}
+                    onCancel={() => setConfirmDelete({ isOpen: false, prompt: null })}
+                    confirmText="Ya, Hapus"
+                    variant="danger"
+                />
+            </div>
         </div>
     );
 };

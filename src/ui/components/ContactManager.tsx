@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Trash2, Shield, ShieldAlert, History, UserPlus } from 'lucide-react';
+import { paymentApi } from '../../core/services/payment.api';
+import { FeatureLockOverlay } from './FeatureLockOverlay';
+import { SubscribeBadge } from './SubscribeBadge';
 import { useWhatsApp } from '../../core/hooks/useWhatsApp';
 import { ConfirmModal } from './ConfirmModal';
+import { Lock, Users, Trash2, Shield, ShieldAlert, History, UserPlus } from 'lucide-react';
 import type { ContactItem, BlockedAttempt } from '../../core/hooks/useWhatsApp';
 
 export function ContactManager() {
@@ -19,6 +22,7 @@ export function ContactManager() {
         isOpen: false,
         contact: null
     });
+    const [userFeatures, setUserFeatures] = useState<any>(null);
 
     const loadData = async () => {
         setLoading(true);
@@ -34,7 +38,16 @@ export function ContactManager() {
 
     useEffect(() => {
         loadData();
+        fetchFeatures();
     }, []);
+
+    const fetchFeatures = async () => {
+        const userId = localStorage.getItem('wa_session_id');
+        if (userId) {
+            const res = await paymentApi.getUserFeatures(userId);
+            if (res.success) setUserFeatures(res.features);
+        }
+    };
 
     const handleModeChange = async (newMode: 'all' | 'specific') => {
         const success = await updateTargetMode(newMode);
@@ -93,172 +106,203 @@ export function ContactManager() {
                         Semua Kontak
                     </button>
                     <button
-                        onClick={() => handleModeChange('specific')}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${mode === 'specific' ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                        onClick={() => {
+                            if (userFeatures && userFeatures.max_contacts === 0) return;
+                            handleModeChange('specific');
+                        }}
+                        disabled={userFeatures && userFeatures.max_contacts === 0}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${mode === 'specific' ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'} ${userFeatures && userFeatures.max_contacts === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
+                        {userFeatures && userFeatures.max_contacts === 0 && <Lock className="w-3 h-3 text-yellow-500" />}
                         Kontak Terpilih
                     </button>
                 </div>
             </div>
 
-            {mode === 'specific' && (
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="glass-card rounded-2xl border border-slate-800 overflow-hidden"
-                >
-                    <div className="border-b border-slate-800 bg-slate-900/30">
-                        <div className="flex p-1 gap-2 m-2 bg-slate-800/50 rounded-xl w-fit">
-                            <button
-                                onClick={() => setActiveTab('allowed')}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'allowed' ? 'bg-cyan-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
-                            >
-                                <Users className="w-4 h-4" />
-                                Daftar Putih
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('blocked')}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'blocked' ? 'bg-red-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
-                            >
-                                <History className="w-4 h-4" />
-                                Baru Masuk (Blocked)
-                                {blockedAttempts.length > 0 && (
-                                    <span className="bg-white text-red-600 px-1.5 py-0.5 rounded-full text-[10px] ml-1">
-                                        {blockedAttempts.length}
-                                    </span>
-                                )}
-                            </button>
-                        </div>
+            <div className="relative">
+                {userFeatures && userFeatures.max_contacts === 0 && mode === 'specific' && (
+                    <FeatureLockOverlay
+                        featureName="Custom Access List"
+                        requiredPackage="Premium"
+                        description="Kontrol secara spesifik siapa saja yang boleh mendapatkan balasan dari AI Anda."
+                        className="rounded-2xl"
+                    />
+                )}
 
-                        <div className="px-6 py-3 border-t border-slate-800 bg-blue-500/5">
-                            <p className="text-[10px] text-slate-400 leading-relaxed italic">
-                                {activeTab === 'allowed'
-                                    ? "💡 Ini adalah daftar orang yang diizinkan chat dengan AI. Anda bisa menghapus mereka kapan saja."
-                                    : "💡 Nomor di bawah ini baru saja mencoba chat tapi diblokir. Klik 'Izinkan' untuk memasukkan mereka ke Daftar Putih."}
-                            </p>
-                        </div>
+                {mode === 'specific' && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="glass-card rounded-2xl border border-slate-800 overflow-hidden"
+                    >
+                        <div className="border-b border-slate-800 bg-slate-900/30">
+                            <div className="flex p-1 gap-2 m-2 bg-slate-800/50 rounded-xl w-fit">
+                                <button
+                                    onClick={() => setActiveTab('allowed')}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'allowed' ? 'bg-cyan-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
+                                >
+                                    <Users className="w-4 h-4" />
+                                    Daftar Putih
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('blocked')}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'blocked' ? 'bg-red-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
+                                >
+                                    <History className="w-4 h-4" />
+                                    Baru Masuk (Blocked)
+                                    {blockedAttempts.length > 0 && (
+                                        <span className="bg-white text-red-600 px-1.5 py-0.5 rounded-full text-[10px] ml-1">
+                                            {blockedAttempts.length}
+                                        </span>
+                                    )}
+                                </button>
+                            </div>
 
-                        <div className="p-4 px-6 flex items-center justify-between border-t border-slate-800">
-                            <div className="flex items-center gap-3">
-                                {activeTab === 'allowed' ? (
-                                    <>
-                                        <Users className="w-5 h-5 text-cyan-500" />
-                                        <h4 className="text-white font-bold text-sm">Daftar Kontak Terpilih</h4>
-                                    </>
-                                ) : (
-                                    <>
-                                        <ShieldAlert className="w-5 h-5 text-red-500" />
-                                        <h4 className="text-white font-bold text-sm">Kontak Baru yang Diblokir</h4>
-                                    </>
+                            <div className="px-6 py-3 border-t border-slate-800 bg-blue-500/5">
+                                <p className="text-[10px] text-slate-400 leading-relaxed italic">
+                                    {activeTab === 'allowed'
+                                        ? "💡 Ini adalah daftar orang yang diizinkan chat dengan AI. Anda bisa menghapus mereka kapan saja."
+                                        : "💡 Nomor di bawah ini baru saja mencoba chat tapi diblokir. Klik 'Izinkan' untuk memasukkan mereka ke Daftar Putih."}
+                                </p>
+                            </div>
+
+                            <div className="p-4 px-6 flex items-center justify-between border-t border-slate-800">
+                                <div className="flex items-center gap-3">
+                                    {activeTab === 'allowed' ? (
+                                        <>
+                                            <Users className="w-5 h-5 text-cyan-500" />
+                                            <h4 className="text-white font-bold text-sm">
+                                                Daftar Kontak Terpilih
+                                                {userFeatures && userFeatures.max_contacts < 999 && (
+                                                    <span className="ml-3 text-[10px] text-slate-500 font-medium">
+                                                        ({contacts.length} / {userFeatures.max_contacts} contacts)
+                                                    </span>
+                                                )}
+                                            </h4>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <ShieldAlert className="w-5 h-5 text-red-500" />
+                                            <h4 className="text-white font-bold text-sm">Kontak Baru yang Diblokir</h4>
+                                        </>
+                                    )}
+                                </div>
+
+                                {activeTab === 'allowed' && userFeatures && userFeatures.max_contacts < 999 && contacts.length >= userFeatures.max_contacts && (
+                                    <SubscribeBadge requiredPackage="Pro" featureName="Unlimited Contacts" />
                                 )}
                             </div>
                         </div>
-                    </div>
 
-                    <div className="p-0">
-                        <AnimatePresence mode="wait">
-                            {activeTab === 'allowed' ? (
-                                <motion.div
-                                    key="allowed-tab"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="divide-y divide-slate-800/50"
-                                >
+                        <div className="p-0">
+                            <AnimatePresence mode="wait">
+                                {activeTab === 'allowed' ? (
+                                    <motion.div
+                                        key="allowed-tab"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="divide-y divide-slate-800/50"
+                                    >
 
-                                    {contacts.length === 0 ? (
-                                        <div className="p-12 text-center text-slate-500">
-                                            <p className="text-sm">Belum ada kontak yang diizinkan.</p>
-                                        </div>
-                                    ) : (
-                                        contacts.map((contact, index) => (
-                                            <div key={contact.jid || `contact-${index}`} className="p-4 flex items-center justify-between hover:bg-slate-800/30 transition-colors group">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-cyan-500/10 group-hover:text-cyan-500 transition-colors text-sm font-bold">
-                                                        {contact.push_name?.charAt(0) || contact.jid.charAt(0)}
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-white font-bold text-sm">{contact.push_name || 'Anonymous'}</p>
-                                                        <p className="text-slate-500 text-[10px] font-mono">{contact.jid.split('@')[0]}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-1">
-                                                    <button
-                                                        onClick={() => setConfirmDelete({ isOpen: true, contact: contact })}
-                                                        className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                                                        title="Delete Contact"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
+                                        {contacts.length === 0 ? (
+                                            <div className="p-12 text-center text-slate-500">
+                                                <p className="text-sm">Belum ada kontak yang diizinkan.</p>
                                             </div>
-                                        ))
-                                    )}
-                                </motion.div>
-                            ) : (
-                                <motion.div
-                                    key="blocked-tab"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="divide-y divide-slate-800/50"
-                                >
-                                    {blockedAttempts.length === 0 ? (
-                                        <div className="p-12 text-center text-slate-500">
-                                            <p className="text-sm">Tidak ada chat otomatis yang diblokir baru-baru ini.</p>
-                                        </div>
-                                    ) : (
-                                        blockedAttempts.map((attempt) => (
-                                            <div key={attempt.jid} className="p-4 flex items-center justify-between hover:bg-slate-800/30 transition-colors group">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 text-sm font-bold">
-                                                        {attempt.push_name?.charAt(0) || attempt.jid.charAt(0)}
+                                        ) : (
+                                            contacts.map((contact, index) => (
+                                                <div key={contact.jid || `contact-${index}`} className="p-4 flex items-center justify-between hover:bg-slate-800/30 transition-colors group">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-cyan-500/10 group-hover:text-cyan-500 transition-colors text-sm font-bold">
+                                                            {contact.push_name?.charAt(0) || contact.jid.charAt(0)}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-white font-bold text-sm">{contact.push_name || 'Anonymous'}</p>
+                                                            <p className="text-slate-500 text-[10px] font-mono">{contact.jid.split('@')[0]}</p>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <p className="text-white font-bold text-sm">{attempt.push_name || 'Unknown'}</p>
-                                                        <p className="text-slate-500 text-[10px] font-mono">{attempt.jid.split('@')[0]}</p>
-                                                        <p className="text-slate-600 text-[9px] mt-1 italic">Diakses pada: {new Date(attempt.attempted_at).toLocaleString()}</p>
+                                                    <div className="flex items-center gap-1">
+                                                        <button
+                                                            onClick={() => setConfirmDelete({ isOpen: true, contact: contact })}
+                                                            className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                                            title="Delete Contact"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <button
-                                                        onClick={async () => {
-                                                            const success = await removeBlockedAttempt(attempt.jid);
-                                                            if (success) loadData();
-                                                        }}
-                                                        className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-red-500/10 text-slate-400 hover:text-red-500 rounded-xl text-xs font-bold transition-all border border-slate-700 hover:border-red-500/20"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                        Tolak
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleWhitelistBlocked(attempt)}
-                                                        className="flex items-center gap-2 px-4 py-2 bg-green-600/10 hover:bg-green-600 text-green-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-green-600/20"
-                                                    >
-                                                        <UserPlus className="w-4 h-4" />
-                                                        Izinkan
-                                                    </button>
-                                                </div>
+                                            ))
+                                        )}
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        key="blocked-tab"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="divide-y divide-slate-800/50"
+                                    >
+                                        {blockedAttempts.length === 0 ? (
+                                            <div className="p-12 text-center text-slate-500">
+                                                <p className="text-sm">Tidak ada chat otomatis yang diblokir baru-baru ini.</p>
                                             </div>
-                                        ))
-                                    )}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                </motion.div>
-            )
-            }
+                                        ) : (
+                                            blockedAttempts.map((attempt) => (
+                                                <div key={attempt.jid} className="p-4 flex items-center justify-between hover:bg-slate-800/30 transition-colors group">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 text-sm font-bold">
+                                                            {attempt.push_name?.charAt(0) || attempt.jid.charAt(0)}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-white font-bold text-sm">{attempt.push_name || 'Unknown'}</p>
+                                                            <p className="text-slate-500 text-[10px] font-mono">{attempt.jid.split('@')[0]}</p>
+                                                            <p className="text-slate-600 text-[9px] mt-1 italic">Diakses pada: {new Date(attempt.attempted_at).toLocaleString()}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={async () => {
+                                                                const success = await removeBlockedAttempt(attempt.jid);
+                                                                if (success) loadData();
+                                                            }}
+                                                            className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-red-500/10 text-slate-400 hover:text-red-500 rounded-xl text-xs font-bold transition-all border border-slate-700 hover:border-red-500/20"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                            Tolak
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleWhitelistBlocked(attempt)}
+                                                            disabled={userFeatures && contacts.length >= userFeatures.max_contacts}
+                                                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all border ${userFeatures && contacts.length >= userFeatures.max_contacts
+                                                                ? 'bg-slate-800 text-slate-500 cursor-not-allowed border-slate-700'
+                                                                : 'bg-green-600/10 hover:bg-green-600 text-green-500 hover:text-white border-green-600/20'
+                                                                }`}
+                                                        >
+                                                            {userFeatures && contacts.length >= userFeatures.max_contacts ? <Lock className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
+                                                            Izinkan
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    </motion.div>
+                )
+                }
 
-            <ConfirmModal
-                isOpen={confirmDelete.isOpen}
-                title="Hapus Kontak"
-                message={`Anda yakin ingin menghapus "${confirmDelete.contact?.push_name || confirmDelete.contact?.jid}" dari daftar whitelist?`}
-                onConfirm={handleDeleteContact}
-                onCancel={() => setConfirmDelete({ isOpen: false, contact: null })}
-                confirmText="Ya, Hapus"
-                variant="danger"
-            />
-        </div >
+                <ConfirmModal
+                    isOpen={confirmDelete.isOpen}
+                    title="Hapus Kontak"
+                    message={`Anda yakin ingin menghapus "${confirmDelete.contact?.push_name || confirmDelete.contact?.jid}" dari daftar whitelist?`}
+                    onConfirm={handleDeleteContact}
+                    onCancel={() => setConfirmDelete({ isOpen: false, contact: null })}
+                    confirmText="Ya, Hapus"
+                    variant="danger"
+                />
+            </div>
+        </div>
     );
 }
