@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Key, Plus, Trash2, Check, Pencil, Copy, Eye, EyeOff } from 'lucide-react';
+import { Key, Plus, Trash2, Check, Pencil, Copy, Eye, EyeOff, Lock } from 'lucide-react';
 import { useWhatsApp } from '../../core/hooks/useWhatsApp';
 import { ConfirmModal } from './ConfirmModal';
+import { SubscribeBadge } from './SubscribeBadge';
+import { paymentApi } from '../../core/services/payment.api';
 import type { ApiKeyItem } from '../../core/hooks/useWhatsApp';
 
 export const ApiKeyManager: React.FC = () => {
@@ -18,6 +20,13 @@ export const ApiKeyManager: React.FC = () => {
         isOpen: false,
         key: null
     });
+    const [userFeatures, setUserFeatures] = useState<any>(null);
+
+    // Get the User ID from first active key OR we might need it as a prop
+    // For now let's use the X-Session-Id logic if possible, 
+    // but ApiKeyManager should ideally know who the user is.
+    // Looking at other files, we usually have access to userId.
+    // Since this is inside Profile, it's passed down or available via session.
 
     const loadKeys = async () => {
         setLoading(true);
@@ -28,7 +37,23 @@ export const ApiKeyManager: React.FC = () => {
 
     useEffect(() => {
         loadKeys();
+        fetchUserFeatures();
     }, []);
+
+    const fetchUserFeatures = async () => {
+        // We'll try to get the userId from localStorage or session
+        const userId = localStorage.getItem('wa_session_id');
+        if (!userId) return;
+
+        try {
+            const res = await paymentApi.getUserFeatures(userId);
+            if (res.success) {
+                setUserFeatures(res.features);
+            }
+        } catch (err) {
+            console.error('Failed to fetch features:', err);
+        }
+    };
 
     const showMsg = (text: string, type: 'success' | 'err' = 'success') => {
         setMessage({ text, type });
@@ -105,16 +130,30 @@ export const ApiKeyManager: React.FC = () => {
                         KELOLA KUNCI AKSES KECERDASAN BUATAN ANDA
                     </p>
                 </div>
-                <button
-                    onClick={() => {
-                        setIsAdding(!isAdding);
-                        setEditingKey(null);
-                        setNewKey({ name: '', value: '', model: 'gemini-2.5-flash', version: 'v1beta' });
-                    }}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl text-xs font-black transition-all shadow-lg shadow-cyan-900/20 active:scale-95"
-                >
-                    <Plus className="w-4 h-4" /> {isAdding ? 'CANCEL' : 'ADD NEW KEY'}
-                </button>
+                <div className="flex items-center gap-3">
+                    {userFeatures && (keys.length >= userFeatures.max_api_keys) && (
+                        <SubscribeBadge
+                            featureName={userFeatures.max_api_keys === 0 ? "API Key Access" : "Extra API Keys"}
+                            requiredPackage={userFeatures.max_api_keys === 0 ? "Premium" : "Pro"}
+                        />
+                    )}
+                    <button
+                        onClick={() => {
+                            if (userFeatures && keys.length >= userFeatures.max_api_keys) return;
+                            setIsAdding(!isAdding);
+                            setEditingKey(null);
+                            setNewKey({ name: '', value: '', model: 'gemini-2.5-flash', version: 'v1beta' });
+                        }}
+                        disabled={userFeatures && keys.length >= userFeatures.max_api_keys && !isAdding}
+                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all shadow-lg active:scale-95 ${userFeatures && keys.length >= userFeatures.max_api_keys && !isAdding
+                                ? 'bg-slate-800 text-slate-500 cursor-not-allowed shadow-none border border-slate-700'
+                                : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-cyan-900/20'
+                            }`}
+                    >
+                        {userFeatures && keys.length >= userFeatures.max_api_keys && !isAdding ? <Lock className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                        {isAdding ? 'CANCEL' : 'ADD NEW KEY'}
+                    </button>
+                </div>
             </div>
 
             <AnimatePresence>

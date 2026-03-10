@@ -73,4 +73,12 @@ export const paymentApi = {
         });
         return res.json();
     },
+
+    // ── Features ──
+    async getUserFeatures(userId: string) {
+        const res = await fetch(`${API_URL}/payment/my-features`, {
+            headers: { 'X-Session-Id': userId },
+        });
+        return res.json();
+    },
 };

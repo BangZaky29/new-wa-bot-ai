@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, MessageSquare, Clock, ArrowRight, Trash2 } from 'lucide-react';
+import { Users, MessageSquare, Clock, ArrowRight, Trash2, Download, Lock } from 'lucide-react';
 import { useWhatsApp } from '../../core/hooks/useWhatsApp';
 import { ChatPreview } from '../../ui/components/ChatPreview';
 import { CustomConfirm } from '../../ui/components/CustomConfirm';
+import { paymentApi } from '../../core/services/payment.api';
+import { SubscribeBadge } from '../../ui/components/SubscribeBadge';
 import type { ChatStats } from '../../types';
 
 export function Dashboard() {
@@ -13,6 +15,8 @@ export function Dashboard() {
     const [selectedChat, setSelectedChat] = useState<{ jid: string, name: string } | null>(null);
     const [selectedJids, setSelectedJids] = useState<string[]>([]);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [userFeatures, setUserFeatures] = useState<any>(null);
+    const [isExporting, setIsExporting] = useState(false);
 
     // Custom Confirm State
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -26,7 +30,15 @@ export function Dashboard() {
             }
             setLoading(false);
         };
+        const loadFeatures = async () => {
+            const userId = localStorage.getItem('wa_session_id');
+            if (userId) {
+                const res = await paymentApi.getUserFeatures(userId);
+                if (res.success) setUserFeatures(res.features);
+            }
+        };
         loadStats();
+        loadFeatures();
         const interval = setInterval(loadStats, 30000); // 30s refresh
         return () => clearInterval(interval);
     }, [fetchStats]);
@@ -121,21 +133,47 @@ export function Dashboard() {
             </div>
 
             <div className="glass-card rounded-2xl overflow-hidden border border-slate-700/50">
-                <div className="px-6 py-4 border-b border-slate-700/50 bg-slate-800/20 flex items-center justify-between">
+                <div className="px-6 py-4 border-b border-slate-700/50 bg-slate-800/20 flex flex-wrap items-center justify-between gap-4">
                     <h3 className="text-sm font-bold text-white uppercase tracking-widest">Active Chat Sessions</h3>
 
-                    {selectedJids.length > 0 && (
-                        <motion.button
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            onClick={() => handleDeleteHistory(selectedJids)}
-                            disabled={isDeleting}
-                            className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-red-900/20"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                            Hapus Terpilih ({selectedJids.length})
-                        </motion.button>
-                    )}
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                            {userFeatures && userFeatures.dashboard_level !== 'full_export' && (
+                                <SubscribeBadge featureName="Full Data Export (CSV/JSON)" requiredPackage="Pro" />
+                            )}
+                            <button
+                                onClick={() => {
+                                    if (userFeatures?.dashboard_level !== 'full_export') return;
+                                    setIsExporting(true);
+                                    setTimeout(() => {
+                                        alert('Memulai ekspor data ke CSV...');
+                                        setIsExporting(false);
+                                    }, 1000);
+                                }}
+                                disabled={userFeatures?.dashboard_level !== 'full_export' || isExporting}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-lg ${userFeatures?.dashboard_level !== 'full_export'
+                                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700 shadow-none'
+                                    : 'bg-slate-700 hover:bg-slate-600 text-white'
+                                    }`}
+                            >
+                                {isExporting ? <span className="animate-spin">⏳</span> : (userFeatures?.dashboard_level !== 'full_export' ? <Lock className="w-4 h-4" /> : <Download className="w-4 h-4" />)}
+                                {userFeatures?.dashboard_level !== 'full_export' ? 'EXPORT LOCKED' : 'EXPORT DATA'}
+                            </button>
+                        </div>
+
+                        {selectedJids.length > 0 && (
+                            <motion.button
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                onClick={() => handleDeleteHistory(selectedJids)}
+                                disabled={isDeleting}
+                                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-red-900/20"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                Hapus Terpilih ({selectedJids.length})
+                            </motion.button>
+                        )}
+                    </div>
                 </div>
 
                 <div className="overflow-x-auto">

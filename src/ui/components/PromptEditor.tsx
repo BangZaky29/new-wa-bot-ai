@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCcw, Sparkles, Plus, Trash2, Check, Pencil } from 'lucide-react';
+import { RefreshCcw, Sparkles, Plus, Trash2, Check, Pencil, Lock } from 'lucide-react';
 import { useWhatsApp } from '../../core/hooks/useWhatsApp';
 import { ConfirmModal } from './ConfirmModal';
+import { SubscribeBadge } from './SubscribeBadge';
+import { paymentApi } from '../../core/services/payment.api';
 import type { PromptItem } from '../../core/hooks/useWhatsApp';
 
 export const PromptEditor: React.FC = () => {
@@ -17,6 +19,7 @@ export const PromptEditor: React.FC = () => {
         isOpen: false,
         prompt: null
     });
+    const [userFeatures, setUserFeatures] = useState<any>(null);
 
     const loadPrompts = async () => {
         setLoading(true);
@@ -27,7 +30,22 @@ export const PromptEditor: React.FC = () => {
 
     useEffect(() => {
         loadPrompts();
+        fetchUserFeatures();
     }, []);
+
+    const fetchUserFeatures = async () => {
+        const userId = localStorage.getItem('wa_session_id');
+        if (!userId) return;
+
+        try {
+            const res = await paymentApi.getUserFeatures(userId);
+            if (res.success) {
+                setUserFeatures(res.features);
+            }
+        } catch (err) {
+            console.error('Failed to fetch features:', err);
+        }
+    };
 
     const handleSave = async () => {
         if (!newPrompt.name || !newPrompt.content) return;
@@ -101,8 +119,17 @@ export const PromptEditor: React.FC = () => {
                     >
                         <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                     </button>
+
+                    {userFeatures && (prompts.length >= userFeatures.max_prompts) && (
+                        <SubscribeBadge
+                            featureName="Extra Personas"
+                            requiredPackage={userFeatures.max_prompts <= 2 ? "Premium" : "Pro"}
+                        />
+                    )}
+
                     <button
                         onClick={() => {
+                            if (userFeatures && prompts.length >= userFeatures.max_prompts && !isAdding) return;
                             if (isAdding) {
                                 setIsAdding(false);
                                 setEditingPrompt(null);
@@ -111,9 +138,17 @@ export const PromptEditor: React.FC = () => {
                                 setIsAdding(true);
                             }
                         }}
-                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-purple-900/20"
+                        disabled={userFeatures && prompts.length >= userFeatures.max_prompts && !isAdding}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-lg ${userFeatures && prompts.length >= userFeatures.max_prompts && !isAdding
+                                ? 'bg-slate-800 text-slate-500 cursor-not-allowed shadow-none border border-slate-700'
+                                : 'bg-purple-600 hover:bg-purple-500 text-white shadow-purple-900/20'
+                            }`}
                     >
-                        <Plus className={`w-4 h-4 transition-transform ${isAdding ? 'rotate-45' : ''}`} />
+                        {userFeatures && prompts.length >= userFeatures.max_prompts && !isAdding ? (
+                            <Lock className="w-4 h-4" />
+                        ) : (
+                            <Plus className={`w-4 h-4 transition-transform ${isAdding ? 'rotate-45' : ''}`} />
+                        )}
                         {editingPrompt ? 'Cancel Edit' : 'New Persona'}
                     </button>
                 </div>

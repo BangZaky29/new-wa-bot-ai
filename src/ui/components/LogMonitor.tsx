@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Terminal, Database, Activity, Wifi, ShieldCheck, Zap, Pause, Play, Trash2 } from 'lucide-react';
+import { Terminal, Database, Activity, Wifi, ShieldCheck, Zap, Pause, Play, Trash2, Lock } from 'lucide-react';
 import { apiService } from '../../core/services/api.service';
+import { paymentApi } from '../../core/services/payment.api';
+import { SubscribeBadge } from './SubscribeBadge';
 
 interface LogEntry {
     id: string;
@@ -15,6 +17,7 @@ export function LogMonitor({ sessionId }: { sessionId: string }) {
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [isPaused, setIsPaused] = useState(false);
     const [filter, setFilter] = useState<'all' | 'error' | 'success'>('all');
+    const [userFeatures, setUserFeatures] = useState<any>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     // Auto-scroll to bottom
@@ -24,8 +27,21 @@ export function LogMonitor({ sessionId }: { sessionId: string }) {
         }
     }, [logs, isPaused]);
 
+    // Fetch user features
+    useEffect(() => {
+        const fetchFeatures = async () => {
+            const userId = localStorage.getItem('wa_session_id');
+            if (userId) {
+                const res = await paymentApi.getUserFeatures(userId);
+                if (res.success) setUserFeatures(res.features);
+            }
+        };
+        fetchFeatures();
+    }, []);
+
     // Initial connection logs
     useEffect(() => {
+        if (userFeatures && !userFeatures.log_monitor_enabled) return;
         const initLogs: LogEntry[] = [
             { id: '1', timestamp: new Date(), level: 'system', message: 'Initializing WA-BOT-AI Engine...' },
             { id: '2', timestamp: new Date(Date.now() + 500), level: 'info', message: 'Loading custom prompts and context bindings...' },
@@ -110,6 +126,18 @@ export function LogMonitor({ sessionId }: { sessionId: string }) {
 
     return (
         <div className="glass-card rounded-[2rem] p-0 overflow-hidden flex flex-col h-[650px] border border-cyan-500/10 shadow-2xl relative">
+            {userFeatures && !userFeatures.log_monitor_enabled && (
+                <div className="absolute inset-0 z-[100] backdrop-blur-md bg-slate-950/40 flex flex-col items-center justify-center p-8 text-center border border-yellow-500/20 rounded-[2rem]">
+                    <div className="w-20 h-20 bg-yellow-500/10 rounded-3xl flex items-center justify-center mb-6 border border-yellow-500/20">
+                        <Lock className="w-10 h-10 text-yellow-500" />
+                    </div>
+                    <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">Log Monitor Locked</h3>
+                    <p className="text-slate-400 text-sm font-medium mb-8 max-w-xs leading-relaxed">
+                        Akses real-time log sistem hanya tersedia untuk pengguna paket <span className="text-yellow-500 font-bold">Pro</span>.
+                    </p>
+                    <SubscribeBadge featureName="Real-time Log Monitoring" requiredPackage="Pro" className="scale-125" />
+                </div>
+            )}
             {/* Header Toolbar */}
             <div className="px-6 py-4 border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-xl flex flex-wrap justify-between items-center gap-4 relative z-20">
                 <div className="flex items-center gap-4">
