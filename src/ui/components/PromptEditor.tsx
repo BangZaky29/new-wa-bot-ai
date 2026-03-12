@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCcw, Sparkles, Plus, Trash2, Check, Pencil, Lock } from 'lucide-react';
 import { useWhatsApp } from '../../core/hooks/useWhatsApp';
+import { getSessionId } from '../../core/hooks/helpers';
 import { ConfirmModal } from './ConfirmModal';
 import { SubscribeBadge } from './SubscribeBadge';
 import { FeatureLockOverlay } from './FeatureLockOverlay';
@@ -35,7 +36,7 @@ export const PromptEditor: React.FC = () => {
     }, []);
 
     const fetchUserFeatures = async () => {
-        const userId = localStorage.getItem('wa_session_id');
+        const userId = getSessionId();
         if (!userId) return;
 
         try {
@@ -136,30 +137,10 @@ export const PromptEditor: React.FC = () => {
                             />
                         )}
 
-                        <button
-                            onClick={() => {
-                                if (userFeatures && prompts.length >= userFeatures.max_prompts && !isAdding) return;
-                                if (isAdding) {
-                                    setIsAdding(false);
-                                    setEditingPrompt(null);
-                                    setNewPrompt({ name: '', content: '' });
-                                } else {
-                                    setIsAdding(true);
-                                }
-                            }}
-                            disabled={userFeatures && prompts.length >= userFeatures.max_prompts && !isAdding}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-lg ${userFeatures && prompts.length >= userFeatures.max_prompts && !isAdding
-                                ? 'bg-slate-800 text-slate-500 cursor-not-allowed shadow-none border border-slate-700'
-                                : 'bg-purple-600 hover:bg-purple-500 text-white shadow-purple-900/20'
-                                }`}
-                        >
-                            {userFeatures && prompts.length >= userFeatures.max_prompts && !isAdding ? (
-                                <Lock className="w-4 h-4" />
-                            ) : (
-                                <Plus className={`w-4 h-4 transition-transform ${isAdding ? 'rotate-45' : ''}`} />
-                            )}
-                            {editingPrompt ? 'Cancel Edit' : 'New Persona'}
-                        </button>
+                        {/* 
+                            NOTE: New Persona button is hidden to maintain template consistency. 
+                            Users are provided with template personas to edit.
+                        */}
                     </div>
                 </div>
 
@@ -251,18 +232,7 @@ export const PromptEditor: React.FC = () => {
                                         >
                                             <Pencil className="w-4 h-4" />
                                         </button>
-                                        <button
-                                            onClick={async (e) => {
-                                                e.stopPropagation();
-                                                if (!p.is_active) {
-                                                    setConfirmDelete({ isOpen: true, prompt: p });
-                                                }
-                                            }}
-                                            disabled={p.is_active}
-                                            className="p-2 text-slate-600 hover:text-red-500 disabled:opacity-30 disabled:hover:text-slate-600 transition-colors"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                        {/* Delete button removed to keep templates */}
                                     </div>
                                 </div>
                             </div>

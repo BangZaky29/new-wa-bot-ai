@@ -4,6 +4,7 @@ import { paymentApi } from '../../core/services/payment.api';
 import { FeatureLockOverlay } from './FeatureLockOverlay';
 import { SubscribeBadge } from './SubscribeBadge';
 import { useWhatsApp } from '../../core/hooks/useWhatsApp';
+import { getSessionId } from '../../core/hooks/helpers';
 import { ConfirmModal } from './ConfirmModal';
 import { Lock, Users, Trash2, Shield, ShieldAlert, History, UserPlus } from 'lucide-react';
 import type { ContactItem, BlockedAttempt } from '../../core/hooks/useWhatsApp';
@@ -42,7 +43,7 @@ export function ContactManager() {
     }, []);
 
     const fetchFeatures = async () => {
-        const userId = localStorage.getItem('wa_session_id');
+        const userId = getSessionId();
         if (userId) {
             const res = await paymentApi.getUserFeatures(userId);
             if (res.success) setUserFeatures(res.features);
@@ -95,6 +96,15 @@ export function ContactManager() {
                             {mode === 'all' && <span className="text-green-400 block mt-1">✓ AI akan membalas semua orang yang chat.</span>}
                             {mode === 'specific' && <span className="text-amber-400 block mt-1">⚠️ Hanya nomor di "Daftar Kontak Terpilih" yang akan dibalas AI.</span>}
                         </p>
+                        {userFeatures && (
+                            <div className="mt-3 px-3 py-2 bg-cyan-500/5 border border-cyan-500/20 rounded-lg">
+                                <p className="text-[9px] font-bold text-cyan-400 leading-tight uppercase tracking-wider">
+                                    💡 Info Paket: <span className="text-white">
+                                        Pada paketan aktif sekarang ({userFeatures.max_contacts > 50 ? 'Premium/Pro' : userFeatures.max_contacts > 2 ? 'Pro' : 'Basic'}) anda hanya bisa mengizinkan {userFeatures.max_contacts} kontak/group saja.
+                                    </span>
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
 

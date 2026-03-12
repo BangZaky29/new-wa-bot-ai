@@ -1,5 +1,4 @@
-import { Sliders } from "lucide-react";
-import { SubscribeBadge } from "../../../ui/components/SubscribeBadge";
+import { Sliders, Lock } from "lucide-react";
 
 interface ToggleCardProps {
   title: string;
@@ -8,7 +7,6 @@ interface ToggleCardProps {
   onToggle: () => void;
   locked?: boolean;
   badge?: React.ReactNode;
-  requiredPackage?: string;
 }
 
 export function ToggleCard({
@@ -18,7 +16,6 @@ export function ToggleCard({
   onToggle,
   locked,
   badge,
-  requiredPackage = "Subscribe",
 }: ToggleCardProps) {
   const isActuallyEnabled = enabled && !locked;
 
@@ -34,10 +31,9 @@ export function ToggleCard({
       {(badge || locked) && (
         <div className="absolute top-4 right-4 z-20">
           {badge || (
-            <SubscribeBadge
-              featureName={title}
-              requiredPackage={requiredPackage}
-            />
+            <div className="w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center border-2 border-[#0f172a] shadow-lg">
+              <Lock className="w-2.5 h-2.5 text-slate-950 font-black" />
+            </div>
           )}
         </div>
       )}

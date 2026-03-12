@@ -1,14 +1,23 @@
 import { Users } from "lucide-react";
 import { ToggleCard } from "../ToggleCard";
 import type { SectionProps } from "../../types";
+import { FeatureLockOverlay } from "../../../../ui/components/FeatureLockOverlay";
 
 export function GroupChatSection({
   controls,
   updateControl,
   isFeatureLocked,
+  userFeatures,
 }: SectionProps) {
   return (
-    <section className="glass-card rounded-[2rem] p-8 border border-slate-800/50 relative animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <section className="glass-card rounded-[2rem] p-8 border border-slate-800/50 relative overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
+      {!userFeatures?.group_chat_enabled && (
+        <FeatureLockOverlay
+          featureName="Group Chat"
+          requiredPackage="Premium"
+          description="Izinkan bot berinteraksi di dalam grup WhatsApp dengan kendali penuh."
+        />
+      )}
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 bg-indigo-500/20 rounded-xl border border-indigo-500/30">
           <Users className="w-5 h-5 text-indigo-400" />
@@ -31,7 +40,6 @@ export function GroupChatSection({
           description="Aktifkan respon di group"
           enabled={controls.group_chat_enabled}
           locked={isFeatureLocked("group_chat_enabled")}
-          requiredPackage="Premium"
           onToggle={() =>
             !isFeatureLocked("group_chat_enabled") &&
             updateControl("group_chat_enabled", !controls.group_chat_enabled)
@@ -43,7 +51,6 @@ export function GroupChatSection({
           description="Respon ketika @mention bot"
           enabled={controls.group_trigger_mention}
           locked={isFeatureLocked("group_trigger_mention")}
-          requiredPackage="Premium"
           onToggle={() =>
             !isFeatureLocked("group_trigger_mention") &&
             updateControl(
@@ -58,7 +65,6 @@ export function GroupChatSection({
           description="Respon ketika reply ke bot"
           enabled={controls.group_trigger_reply}
           locked={isFeatureLocked("group_trigger_reply")}
-          requiredPackage="Premium"
           onToggle={() =>
             !isFeatureLocked("group_trigger_reply") &&
             updateControl(
@@ -73,7 +79,6 @@ export function GroupChatSection({
           description="Respon ketika ada keyword (ai/bot)"
           enabled={controls.group_trigger_keyword}
           locked={isFeatureLocked("group_trigger_keyword")}
-          requiredPackage="Pro"
           onToggle={() =>
             !isFeatureLocked("group_trigger_keyword") &&
             updateControl(

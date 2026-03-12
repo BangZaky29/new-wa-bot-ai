@@ -1,14 +1,23 @@
 import { Image as ImageIcon } from "lucide-react";
 import { ToggleCard } from "../ToggleCard";
 import type { SectionProps } from "../../types";
+import { FeatureLockOverlay } from "../../../../ui/components/FeatureLockOverlay";
 
 export function MediaSection({
   controls,
   updateControl,
   isFeatureLocked,
+  userFeatures,
 }: SectionProps) {
   return (
-    <section className="glass-card rounded-[2rem] p-8 border border-slate-800/50 relative animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <section className="glass-card rounded-[2rem] p-8 border border-slate-800/50 relative overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
+      {!userFeatures?.media_save_enabled && (
+        <FeatureLockOverlay
+          featureName="Cloud Media"
+          requiredPackage="Premium"
+          description="Simpan dan kelola aset media di cloud untuk akses kapan saja."
+        />
+      )}
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 bg-emerald-500/20 rounded-xl border border-emerald-500/30">
           <ImageIcon className="w-5 h-5 text-emerald-400" />
@@ -31,7 +40,6 @@ export function MediaSection({
           description="AI bisa membaca dan menganalisis media masuk"
           enabled={controls.media_receive_enabled}
           locked={isFeatureLocked("media_receive_enabled")}
-          requiredPackage="Premium"
           onToggle={() =>
             !isFeatureLocked("media_receive_enabled") &&
             updateControl(
@@ -46,7 +54,6 @@ export function MediaSection({
           description="Simpan media ke storage cloud"
           enabled={controls.media_save_to_cloud}
           locked={isFeatureLocked("media_save_to_cloud")}
-          requiredPackage="Premium"
           onToggle={() =>
             !isFeatureLocked("media_save_to_cloud") &&
             updateControl(
@@ -61,7 +68,6 @@ export function MediaSection({
           description="AI bisa mengirim kembali media"
           enabled={controls.media_send_enabled}
           locked={isFeatureLocked("media_send_enabled")}
-          requiredPackage="Pro"
           onToggle={() =>
             !isFeatureLocked("media_send_enabled") &&
             updateControl(
@@ -76,7 +82,6 @@ export function MediaSection({
           description="Minta konfirmasi sebelum simpan media"
           enabled={controls.media_confirm_before_save}
           locked={isFeatureLocked("media_confirm_before_save")}
-          requiredPackage="Premium"
           onToggle={() =>
             !isFeatureLocked("media_confirm_before_save") &&
             updateControl(

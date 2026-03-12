@@ -53,7 +53,6 @@ export function ProactiveSection({
             )
           }
           locked={isFeatureLocked("is_proactive_enabled")}
-          requiredPackage="Premium"
         />
 
         <div className="p-6 rounded-3xl border bg-slate-800/30 border-slate-700/30 transition-all relative">

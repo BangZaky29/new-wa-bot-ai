@@ -20,6 +20,7 @@ import { Dashboard } from "./pages/Dashboard/Dashboard";
 import { Features } from "./pages/Features/Features";
 import { Profile } from "./pages/Profile/Profile";
 import { Billing } from "./pages/Billing/Billing";
+import { ScrollContainer } from "./ui/components/ScrollContainer";
 
 // Auth Pages (New)
 import Login from "./pages/Auth/Login.tsx";
@@ -227,8 +228,8 @@ export default function App() {
             className="lg:col-span-8 space-y-6 md:space-y-8 animate-slide-up"
             style={{ animationDelay: "0.2s" }}
           >
-            <div className="overflow-x-auto no-scrollbar -mx-2 px-2 md:mx-0 md:px-0">
-              <div className="flex gap-1.5 p-1 bg-slate-900/80 backdrop-blur rounded-2xl border border-slate-800 min-w-max">
+            <ScrollContainer className="bg-slate-900/80 backdrop-blur rounded-2xl border border-slate-800">
+              <div className="flex gap-1.5 p-1 min-w-max">
                 {TABS.map((tab) => {
                   const Icon = tab.icon;
                   const isLogs = tab.id === "logs";
@@ -264,7 +265,7 @@ export default function App() {
                   );
                 })}
               </div>
-            </div>
+            </ScrollContainer>
 
             <AnimatePresence mode="wait">
               {activeTab === "stats" && (

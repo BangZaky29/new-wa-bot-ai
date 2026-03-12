@@ -10,10 +10,12 @@ import {
   X,
   RefreshCcw,
   CheckCircle,
+  Lock,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFeatureControls } from "../../core/hooks/useFeatureControls";
 import { SubscribeBadge } from "../../ui/components/SubscribeBadge";
+import { ScrollContainer } from "../../ui/components/ScrollContainer";
 
 // Sections Components
 import { CoreSection } from "./components/sections/CoreSection";
@@ -164,26 +166,47 @@ export function Features({ userId }: FeaturesProps) {
       </div>
 
       {/* Tabs Filter */}
-      <div className="flex gap-2 p-1 bg-slate-800/50 rounded-2xl overflow-x-auto no-scrollbar border border-slate-700/50">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
-                isActive
-                  ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20"
-                  : "text-slate-400 hover:text-white hover:bg-slate-700/50"
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
+      <ScrollContainer className="bg-slate-800/50 rounded-2xl border border-slate-700/50">
+        <div className="flex gap-2 p-1 min-w-max">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+
+            // Dynamic Lock Logic
+            let isTabLocked = false;
+            if (userFeatures) {
+              if (tab.id === "proactive" && !userFeatures.proactive_enabled)
+                isTabLocked = true;
+              if (tab.id === "media" && !userFeatures.media_save_enabled)
+                isTabLocked = true;
+              if (tab.id === "group" && !userFeatures.group_chat_enabled)
+                isTabLocked = true;
+              if (tab.id === "history" && userFeatures.history_retention_days === 0)
+                isTabLocked = true;
+            }
+
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap relative ${
+                  isActive
+                    ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20"
+                    : "text-slate-400 hover:text-white hover:bg-slate-700/50"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {tab.label}
+                {isTabLocked && (
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center border-2 border-[#0f172a] shadow-lg">
+                    <Lock className="w-2 h-2 text-slate-950 font-black" />
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </ScrollContainer>
 
       {/* Conditional Rendering using Components */}
       {activeTab === "core" && <CoreSection {...sectionProps} />}

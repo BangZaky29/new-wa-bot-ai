@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Key, Plus, Trash2, Check, Pencil, Copy, Eye, EyeOff, Lock } from 'lucide-react';
 import { useWhatsApp } from '../../core/hooks/useWhatsApp';
+import { getSessionId } from '../../core/hooks/helpers';
 import { ConfirmModal } from './ConfirmModal';
 import { SubscribeBadge } from './SubscribeBadge';
 import { FeatureLockOverlay } from './FeatureLockOverlay';
@@ -42,8 +43,7 @@ export const ApiKeyManager: React.FC = () => {
     }, []);
 
     const fetchUserFeatures = async () => {
-        // We'll try to get the userId from localStorage or session
-        const userId = localStorage.getItem('wa_session_id');
+        const userId = getSessionId();
         if (!userId) return;
 
         try {
@@ -146,22 +146,10 @@ export const ApiKeyManager: React.FC = () => {
                                 requiredPackage={userFeatures.max_api_keys === 0 ? "Premium" : "Pro"}
                             />
                         )}
-                        <button
-                            onClick={() => {
-                                if (userFeatures && keys.length >= userFeatures.max_api_keys) return;
-                                setIsAdding(!isAdding);
-                                setEditingKey(null);
-                                setNewKey({ name: '', value: '', model: 'gemini-2.5-flash', version: 'v1beta' });
-                            }}
-                            disabled={userFeatures && keys.length >= userFeatures.max_api_keys && !isAdding}
-                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all shadow-lg active:scale-95 ${userFeatures && keys.length >= userFeatures.max_api_keys && !isAdding
-                                ? 'bg-slate-800 text-slate-500 cursor-not-allowed shadow-none border border-slate-700'
-                                : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-cyan-900/20'
-                                }`}
-                        >
-                            {userFeatures && keys.length >= userFeatures.max_api_keys && !isAdding ? <Lock className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                            {isAdding ? 'CANCEL' : 'ADD NEW KEY'}
-                        </button>
+                        {/* 
+                            NOTE: ADD NEW KEY is hidden to maintain template consistency. 
+                            Users are provided with template keys to edit.
+                        */}
                     </div>
                 </div>
 
@@ -276,12 +264,7 @@ export const ApiKeyManager: React.FC = () => {
                                         >
                                             <Pencil className="w-4 h-4" />
                                         </button>
-                                        <button
-                                            onClick={() => setConfirmDelete({ isOpen: true, key: k })}
-                                            className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                        {/* Delete button removed to keep template keys */}
                                     </div>
                                 </div>
 

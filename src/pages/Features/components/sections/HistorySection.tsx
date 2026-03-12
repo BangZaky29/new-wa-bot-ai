@@ -27,7 +27,6 @@ export function HistorySection({ controls, updateControl, userFeatures, isFeatur
           description="Simpan riwayat chat"
           enabled={controls.history_enabled}
           locked={isFeatureLocked("history_enabled")}
-          requiredPackage="Basic"
           onToggle={() =>
             !isFeatureLocked("history_enabled") &&
             updateControl("history_enabled", !controls.history_enabled)

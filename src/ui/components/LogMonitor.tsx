@@ -30,14 +30,13 @@ export function LogMonitor({ sessionId }: { sessionId: string }) {
     // Fetch user features
     useEffect(() => {
         const fetchFeatures = async () => {
-            const userId = localStorage.getItem('wa_session_id');
-            if (userId) {
-                const res = await paymentApi.getUserFeatures(userId);
+            if (sessionId) {
+                const res = await paymentApi.getUserFeatures(sessionId);
                 if (res.success) setUserFeatures(res.features);
             }
         };
         fetchFeatures();
-    }, []);
+    }, [sessionId]);
 
     // Initial connection logs
     useEffect(() => {
