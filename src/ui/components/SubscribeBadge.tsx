@@ -4,7 +4,7 @@ import { UpgradeModal } from './UpgradeModal';
 
 interface SubscribeBadgeProps {
     featureName: string;
-    requiredPackage: 'Premium' | 'Pro';
+    requiredPackage: string;
     className?: string;
 }
 

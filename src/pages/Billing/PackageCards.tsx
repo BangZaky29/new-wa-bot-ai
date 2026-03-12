@@ -93,18 +93,26 @@ export function PackageCards({
                                     <span className={!f.proactive_enabled ? 'text-slate-600' : ''}>Proactive Nudge</span>
                                 </li>
                                 <li className="flex items-center gap-2 text-slate-300">
-                                    <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-                                    <span>{f.max_contacts === 999 ? 'Unlimited' : f.max_contacts} kontak</span>
-                                </li>
-                                <li className="flex items-center gap-2 text-slate-300">
-                                    <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-                                    <span>{f.max_prompts === 999 ? 'Unlimited' : f.max_prompts} prompt</span>
-                                </li>
-                                <li className="flex items-center gap-2 text-slate-300">
-                                    {f.max_api_keys > 0
+                                    {f.proactive_config
                                         ? <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
                                         : <X className="w-3.5 h-3.5 text-red-500/50 flex-shrink-0" />}
-                                    <span className={f.max_api_keys === 0 ? 'text-slate-600' : ''}>{f.max_api_keys === 0 ? 'No BYOK' : f.max_api_keys === 999 ? 'Unlimited API Keys' : `${f.max_api_keys} API Key`}</span>
+                                    <span className={!f.proactive_config ? 'text-slate-600' : ''}>Proactive Custom Config</span>
+                                </li>
+                                <li className="flex items-center gap-2 text-slate-300">
+                                    {f.media_save_to_cloud
+                                        ? <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                                        : <X className="w-3.5 h-3.5 text-red-500/50 flex-shrink-0" />}
+                                    <span className={!f.media_save_to_cloud ? 'text-slate-600' : ''}>Cloud Media Storage</span>
+                                </li>
+                                <li className="flex items-center gap-2 text-slate-300">
+                                    {f.group_chat_enabled
+                                        ? <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                                        : <X className="w-3.5 h-3.5 text-red-500/50 flex-shrink-0" />}
+                                    <span className={!f.group_chat_enabled ? 'text-slate-600' : ''}>Group Chat Integration</span>
+                                </li>
+                                <li className="flex items-center gap-2 text-slate-300">
+                                    <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                                    <span>{f.max_contacts === 999 ? 'Unlimited' : f.max_contacts === 0 ? '0' : f.max_contacts} kontak whitelist</span>
                                 </li>
                                 <li className="flex items-center gap-2 text-slate-300">
                                     <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
@@ -114,7 +122,7 @@ export function PackageCards({
                                     {f.log_monitor_enabled
                                         ? <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
                                         : <X className="w-3.5 h-3.5 text-red-500/50 flex-shrink-0" />}
-                                    <span className={!f.log_monitor_enabled ? 'text-slate-600' : ''}>Log Monitor</span>
+                                    <span className={!f.log_monitor_enabled ? 'text-slate-600' : ''}>Advanced Log Monitor</span>
                                 </li>
                             </ul>
 

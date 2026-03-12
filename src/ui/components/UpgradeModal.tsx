@@ -6,7 +6,7 @@ interface UpgradeModalProps {
     isOpen: boolean;
     onClose: () => void;
     featureName: string;
-    requiredPackage: 'Premium' | 'Pro';
+    requiredPackage: string;
 }
 
 export function UpgradeModal({ isOpen, onClose, featureName, requiredPackage }: UpgradeModalProps) {
