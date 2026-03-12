@@ -210,33 +210,43 @@ export function ContactManager() {
                                                 <p className="text-sm">Belum ada kontak yang diizinkan.</p>
                                             </div>
                                         ) : (
-                                            contacts.map((contact, index) => (
-                                                <div key={contact.jid || `contact-${index}`} className="p-4 flex items-center justify-between hover:bg-slate-800/30 transition-colors group">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${contact.jid.endsWith('@g.us') ? 'bg-indigo-500/10 text-indigo-500 group-hover:bg-indigo-500/20' : 'bg-slate-800 text-slate-400 group-hover:bg-cyan-500/10 group-hover:text-cyan-500'}`}>
-                                                            {contact.push_name?.charAt(0) || contact.jid.charAt(0)}
-                                                        </div>
-                                                        <div>
-                                                            <div className="flex items-center gap-2">
-                                                                <p className="text-white font-bold text-sm">{contact.push_name || 'Anonymous'}</p>
-                                                                {contact.jid.endsWith('@g.us') && (
-                                                                    <span className="px-1.5 py-0.5 bg-indigo-500/20 text-indigo-400 text-[8px] font-black uppercase rounded border border-indigo-500/30">GROUP</span>
-                                                                )}
+                                            contacts.map((contact, index) => {
+                                                const isOverLimit = userFeatures && index >= userFeatures.max_contacts;
+                                                return (
+                                                    <div key={contact.jid || `contact-${index}`} className={`p-4 flex items-center justify-between transition-colors group ${isOverLimit ? 'opacity-50 grayscale bg-red-900/10' : 'hover:bg-slate-800/30'}`}>
+                                                        <div className="flex items-center gap-4">
+                                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${contact.jid.endsWith('@g.us') ? 'bg-indigo-500/10 text-indigo-500 group-hover:bg-indigo-500/20' : 'bg-slate-800 text-slate-400 group-hover:bg-cyan-500/10 group-hover:text-cyan-500'}`}>
+                                                                {contact.push_name?.charAt(0) || contact.jid.charAt(0)}
                                                             </div>
-                                                            <p className="text-slate-500 text-[10px] font-mono">{contact.jid.split('@')[0]}</p>
+                                                            <div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <p className="text-white font-bold text-sm">
+                                                                        {contact.push_name || 'Anonymous'}
+                                                                    </p>
+                                                                    {contact.jid.endsWith('@g.us') && (
+                                                                        <span className="px-1.5 py-0.5 bg-indigo-500/20 text-indigo-400 text-[8px] font-black uppercase rounded border border-indigo-500/30">GROUP</span>
+                                                                    )}
+                                                                    {isOverLimit && (
+                                                                        <span className="flex items-center gap-1 px-1.5 py-0.5 bg-red-500/20 text-red-400 text-[8px] font-black uppercase rounded border border-red-500/30">
+                                                                            <Lock className="w-2.5 h-2.5" /> OVER LIMIT
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <p className="text-slate-500 text-[10px] font-mono">{contact.jid.split('@')[0]}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-1">
+                                                            <button
+                                                                onClick={() => setConfirmDelete({ isOpen: true, contact: contact })}
+                                                                className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                                                title="Delete Contact"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
                                                         </div>
                                                     </div>
-                                                    <div className="flex items-center gap-1">
-                                                        <button
-                                                            onClick={() => setConfirmDelete({ isOpen: true, contact: contact })}
-                                                            className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                                                            title="Delete Contact"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))
+                                                );
+                                            })
                                         )}
                                     </motion.div>
                                 ) : (
