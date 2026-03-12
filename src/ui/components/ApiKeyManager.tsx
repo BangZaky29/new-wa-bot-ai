@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Key, Plus, Trash2, Check, Pencil, Copy, Eye, EyeOff, Lock } from 'lucide-react';
+import { Key, Check, Pencil, Copy, Eye, EyeOff } from 'lucide-react';
 import { useWhatsApp } from '../../core/hooks/useWhatsApp';
 import { getSessionId } from '../../core/hooks/helpers';
 import { ConfirmModal } from './ConfirmModal';

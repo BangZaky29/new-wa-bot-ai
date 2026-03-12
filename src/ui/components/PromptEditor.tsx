@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCcw, Sparkles, Plus, Trash2, Check, Pencil, Lock } from 'lucide-react';
+import { RefreshCcw, Sparkles, Check, Pencil } from 'lucide-react';
 import { useWhatsApp } from '../../core/hooks/useWhatsApp';
 import { getSessionId } from '../../core/hooks/helpers';
 import { ConfirmModal } from './ConfirmModal';
