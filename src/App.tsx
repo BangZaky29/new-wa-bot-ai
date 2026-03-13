@@ -41,7 +41,14 @@ export default function App() {
     return saved ? JSON.parse(saved) : null;
   });
   const [userFeatures, setUserFeatures] = useState<any>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(() => {
+    const saved = localStorage.getItem("wa_user");
+    if (saved) {
+      const u = JSON.parse(saved);
+      return u.role === 'moderator';
+    }
+    return false;
+  });
   const [showModeratorPanel, setShowModeratorPanel] = useState(false);
 
   useEffect(() => {
@@ -115,6 +122,12 @@ export default function App() {
       };
       
       checkAdmin();
+      
+      // Also sync isAdmin immediately if user object has it
+      if (user.role === 'moderator' && !isAdmin) {
+        setIsAdmin(true);
+      }
+      
       // Periodic check every 30s to detect DB role changes
       const roleInterval = setInterval(checkAdmin, 30000);
       return () => clearInterval(roleInterval);

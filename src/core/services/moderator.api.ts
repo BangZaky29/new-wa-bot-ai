@@ -61,10 +61,8 @@ export const moderatorApi = {
         return data;
     },
 
-    getUserRole: async (phone: string): Promise<string | null> => {
-        const cleanPhone = phone.replace(/\D/g, '');
-        const normalized = cleanPhone.startsWith('0') ? '62' + cleanPhone.substring(1) : cleanPhone;
-        const { data } = await api.get<{ role: string }>(`/api/moderator/role/${normalized}`);
+    getUserRole: async (identifier: string): Promise<string | null> => {
+        const { data } = await api.get<{ role: string }>(`/api/moderator/role/${encodeURIComponent(identifier)}`);
         return data?.role || null;
     },
     executeCommand: async (action: string, target: any, params: any = {}): Promise<{ success: boolean; result: string }> => {
