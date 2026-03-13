@@ -97,6 +97,11 @@ export default function App() {
           if (phone) {
             const role = await moderatorApi.getUserRole(phone);
             const isModerator = role === 'moderator';
+            
+            if (isModerator !== isAdmin) {
+              console.log(`🛡️ Role Change Detected: ${isModerator ? 'MODERATOR' : 'USER'}`);
+            }
+            
             setIsAdmin(isModerator);
             
             // If we lost admin status while in moderator panel, kick out
