@@ -67,4 +67,8 @@ export const moderatorApi = {
         const { data } = await api.get<{ role: string }>(`/api/moderator/role/${normalized}`);
         return data?.role || null;
     },
+    executeCommand: async (action: string, target: any, params: any = {}): Promise<{ success: boolean; result: string }> => {
+        const { data } = await api.post('/api/moderator/execute', { action, target, params });
+        return data;
+    },
 };

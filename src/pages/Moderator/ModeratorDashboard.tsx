@@ -57,7 +57,7 @@ export const ModeratorDashboard: React.FC<ModeratorDashboardProps> = ({ onBack }
                     <div className="flex items-center gap-4">
                         <div className="px-4 py-2 rounded-xl bg-slate-900/50 border border-slate-700/50 flex items-center gap-3">
                             <div className="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></div>
-                            <span className="text-xs font-bold tracking-widest text-violet-400 uppercase">Admin Session Active</span>
+                            <span className="text-xs font-bold tracking-widest text-violet-400 uppercase">System Engine: ONLINE</span>
                         </div>
                     </div>
                 </header>
