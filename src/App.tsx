@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiService } from "./core/services/api.service";
-import { RefreshCw, MessageSquare, Zap, Bot } from "lucide-react";
+import { RefreshCw, MessageSquare, Zap, Bot, ShieldCheck } from "lucide-react";
 
 // Constants
 import { TABS } from "./core/constants/tabs";
@@ -26,6 +26,10 @@ import { ScrollContainer } from "./ui/components/ScrollContainer";
 import Login from "./pages/Auth/Login.tsx";
 import Register from "./pages/Auth/Register.tsx";
 
+// Moderator (New)
+import ModeratorDashboard from "./pages/Moderator/ModeratorDashboard.tsx";
+import { moderatorApi } from "./core/services/moderator.api.ts";
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>("control");
   const [view, setView] = useState<"login" | "register" | "dashboard">(() => {
@@ -37,6 +41,8 @@ export default function App() {
     return saved ? JSON.parse(saved) : null;
   });
   const [userFeatures, setUserFeatures] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showModeratorPanel, setShowModeratorPanel] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -82,8 +88,36 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (user?.id) fetchFeatures(user.id);
-  }, [user?.id]);
+    if (user?.id) {
+      fetchFeatures(user.id);
+      
+      const checkAdmin = async () => {
+        try {
+          const phone = user.phone || user.identifier;
+          if (phone) {
+            const role = await moderatorApi.getUserRole(phone);
+            const isModerator = role === 'moderator';
+            setIsAdmin(isModerator);
+            
+            // If we lost admin status while in moderator panel, kick out
+            if (!isModerator && showModeratorPanel) {
+              setShowModeratorPanel(false);
+            }
+          }
+        } catch (err) {
+          console.error("Failed to check admin role:", err);
+        }
+      };
+      
+      checkAdmin();
+      // Periodic check every 30s to detect DB role changes
+      const roleInterval = setInterval(checkAdmin, 30000);
+      return () => clearInterval(roleInterval);
+    } else {
+      setIsAdmin(false);
+      setShowModeratorPanel(false);
+    }
+  }, [user?.id, showModeratorPanel]);
 
   const handleLoginSuccess = (userData: any) => {
     setUser(userData);
@@ -114,6 +148,11 @@ export default function App() {
         onSwitchRegister={() => setView("register")}
       />
     );
+
+  // If in moderator view, show the panel
+  if (showModeratorPanel && isAdmin) {
+    return <ModeratorDashboard onBack={() => setShowModeratorPanel(false)} />;
+  }
   if (view === "register")
     return (
       <Register
@@ -157,7 +196,17 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            {isAdmin && (
+              <button
+                onClick={() => setShowModeratorPanel(true)}
+                className="px-5 py-2.5 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-black tracking-widest transition-all shadow-lg shadow-violet-600/20 flex items-center gap-2 uppercase"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                Moderator Panel
+              </button>
+            )}
+            <div className="h-8 w-[1px] bg-slate-800 mx-1 hidden md:block"></div>
             <button
               onClick={fetchStatus}
               className="p-2.5 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 rounded-xl transition-all"
