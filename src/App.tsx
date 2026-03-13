@@ -123,9 +123,10 @@ export default function App() {
       
       checkAdmin();
       
-      // Also sync isAdmin immediately if user object has it
-      if (user.role === 'moderator' && !isAdmin) {
-        setIsAdmin(true);
+      // Secondary Sync: Ensure isAdmin is always tied to user.role
+      const currentRoleIsMod = user.role === 'moderator';
+      if (currentRoleIsMod !== isAdmin) {
+        setIsAdmin(currentRoleIsMod);
       }
       
       // Periodic check every 30s to detect DB role changes
@@ -139,6 +140,7 @@ export default function App() {
 
   const handleLoginSuccess = (userData: any) => {
     setUser(userData);
+    setIsAdmin(userData.role === 'moderator');
     setView("dashboard");
   };
 
