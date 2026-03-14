@@ -88,7 +88,10 @@ export function useFeatureControls(userId?: string) {
 
   const isFeatureLocked = useCallback(
     (featureKey: string): boolean => {
-      if (!userFeatures || !userFeatures.has_subscription) return true;
+      if (!userFeatures) return true;
+      if (userFeatures.is_admin) return false; // Admins/Moderators have everything unlocked
+      if (!userFeatures.has_subscription) return true;
+      
       switch (featureKey) {
         case "media_save_to_cloud":
           return !userFeatures.media_save_enabled;

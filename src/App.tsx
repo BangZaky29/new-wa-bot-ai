@@ -107,9 +107,11 @@ export default function App() {
             
             if (isModerator !== isAdmin) {
               console.log(`🛡️ Role Change Detected: ${isModerator ? 'MODERATOR' : 'USER'}`);
+              setIsAdmin(isModerator);
+              
+              // Force update local user object role for other components
+              setUser((prev: any) => prev ? ({ ...prev, role: isModerator ? 'moderator' : 'user' }) : prev);
             }
-            
-            setIsAdmin(isModerator);
             
             // If we lost admin status while in moderator panel, kick out
             if (!isModerator && showModeratorPanel) {
@@ -129,8 +131,8 @@ export default function App() {
         setIsAdmin(currentRoleIsMod);
       }
       
-      // Periodic check every 30s to detect DB role changes
-      const roleInterval = setInterval(checkAdmin, 30000);
+      // Periodic check every 5s to detect DB role changes instantly
+      const roleInterval = setInterval(checkAdmin, 5000);
       return () => clearInterval(roleInterval);
     } else {
       setIsAdmin(false);
