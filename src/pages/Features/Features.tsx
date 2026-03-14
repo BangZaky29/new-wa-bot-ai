@@ -174,7 +174,7 @@ export function Features({ userId }: FeaturesProps) {
 
             // Dynamic Lock Logic
             let isTabLocked = false;
-            if (userFeatures) {
+            if (userFeatures && !userFeatures.is_admin) {
               if (tab.id === "proactive" && !userFeatures.proactive_enabled)
                 isTabLocked = true;
               if (tab.id === "media" && !userFeatures.media_save_enabled)

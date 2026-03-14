@@ -11,7 +11,7 @@ export function MediaSection({
 }: SectionProps) {
   return (
     <section className="glass-card rounded-[2rem] p-8 border border-slate-800/50 relative overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
-      {!userFeatures?.media_save_enabled && (
+      {!userFeatures?.media_save_enabled && !userFeatures?.is_admin && (
         <FeatureLockOverlay
           featureName="Cloud Media"
           requiredPackage="Premium"
